@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --blood:     #0d3349;
+  --rust:      #1a5f7a;
+  --amber:     #2a8fa8;
+  --cream:     #f0f7fa;
+  --dark:      #071c28;
+  --charcoal:  #0e2e42;
+  --mid:       #1d5570;
+  --light-mid: #5b96b0;
+  --bone:      #c8e0ea;
+  --green:     #2ECC71;
+  --green-dark:#27AE60;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--dark);
+  color: var(--cream);
+  font-family: 'IBM Plex Sans', sans-serif;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px),
+    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.008) 80px, rgba(255,255,255,0.008) 81px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root { position: relative; z-index: 1; height: 100vh; overflow: hidden; }
