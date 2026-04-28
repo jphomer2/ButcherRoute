@@ -2,20 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import RouteCard from './components/RouteCard';
+import DateBar from './components/DateBar';
 import { api } from './api';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
 export default function App() {
+  const [date,       setDate]       = useState(TODAY);
   const [stops,      setStops]      = useState([]);
   const [messages,   setMessages]   = useState([]);
   const [selectedMsg, setSelectedMsg] = useState(null);
   const [runStatus,  setRunStatus]  = useState('building');
   const [runId,      setRunId]      = useState(null);
+  const [optimising, setOptimising] = useState(false);
   const [error,      setError]      = useState(null);
 
+  // Load run + stops whenever date changes
   useEffect(() => {
-    api.getRuns(TODAY)
+    setStops([]);
+    setRunId(null);
+    setRunStatus('building');
+    api.getRuns(date)
       .then(runs => {
         if (runs?.length) {
           const run = runs[0];
@@ -26,13 +33,12 @@ export default function App() {
       })
       .then(s => { if (s) setStops(s); })
       .catch(() => {});
-  }, []);
+  }, [date]);
 
   const handleParsed = useCallback(async (result) => {
     setStops(prev => {
       const existingIds = new Set(prev.map(s => s.id));
-      const newStops = result.stops.filter(s => !existingIds.has(s.id));
-      return [...prev, ...newStops];
+      return [...prev, ...result.stops.filter(s => !existingIds.has(s.id))];
     });
 
     setMessages(prev => {
@@ -48,12 +54,34 @@ export default function App() {
 
     if (!runId) {
       try {
-        const run = await api.createRun({ delivery_date: TODAY });
+        const run = await api.createRun({ delivery_date: date });
         setRunId(run.id);
         setRunStatus(run.status);
       } catch {}
     }
-  }, [runId]);
+  }, [runId, date]);
+
+  const handleOptimise = useCallback(async () => {
+    setOptimising(true);
+    setError(null);
+    try {
+      const result = await api.optimise(date);
+      // Reload stops with updated route_sequence
+      if (runId) {
+        const updated = await api.getStops(runId);
+        setStops(updated);
+      }
+      setRunStatus('ready');
+      if (result.maps_url && runId) {
+        // Update run with maps URL
+        await api.updateRun(runId, { route_url: result.maps_url, status: 'ready' });
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setOptimising(false);
+    }
+  }, [date, runId]);
 
   const handleDispatch = useCallback(async () => {
     if (!runId) return;
@@ -67,7 +95,16 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Header runDate={TODAY} />
+      <Header />
+
+      <DateBar
+        date={date}
+        onChange={setDate}
+        onOptimise={handleOptimise}
+        optimising={optimising}
+        runStatus={runStatus}
+        stopCount={stops.length}
+      />
 
       {error && (
         <div style={{
@@ -87,12 +124,12 @@ export default function App() {
           selectedMsg={selectedMsg}
           onSelectMsg={setSelectedMsg}
           onParsed={handleParsed}
-          deliveryDate={TODAY}
+          deliveryDate={date}
         />
         <main style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
           <RouteCard
             stops={stops}
-            runDate={TODAY}
+            runDate={date}
             runStatus={runStatus}
             onDispatch={handleDispatch}
           />

@@ -24,4 +24,5 @@ export const api = {
   updateRun:     (id, body)    => req('PATCH', `/runs/${id}`, body),
   getStops:      (runId)       => req('GET',   `/runs/${runId}/stops`),
   updateStop:    (id, body)    => req('PATCH', `/runs/stops/${id}`, body),
+  optimise:      (date)        => req('POST',  '/optimise', { delivery_date: date }),
 };
