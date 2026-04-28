@@ -16,7 +16,7 @@ function buildMapsUrl(stops, depot) {
 
 const DEPOT = { lat: 51.750589, lng: 0.157336 };
 
-export default function RouteCard({ stops, runDate, runStatus, onDispatch }) {
+export default function RouteCard({ stops, runDate, runStatus, onDispatch, onDeleteStop, onUpdateStop }) {
   const mapsUrl = buildMapsUrl(stops, DEPOT);
 
   const dateLabel = runDate
@@ -85,7 +85,7 @@ export default function RouteCard({ stops, runDate, runStatus, onDispatch }) {
         <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--light-mid)', marginBottom: '0.75rem' }}>
           ROUTE STOPS
         </div>
-        <StopList stops={stops} />
+        <StopList stops={stops} onDelete={onDeleteStop} onUpdate={onUpdateStop} />
       </div>
     </div>
   );

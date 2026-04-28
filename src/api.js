@@ -23,6 +23,7 @@ export const api = {
   createRun:     (body)        => req('POST',  '/runs', body),
   updateRun:     (id, body)    => req('PATCH', `/runs/${id}`, body),
   getStops:      (runId)       => req('GET',   `/runs/${runId}/stops`),
-  updateStop:    (id, body)    => req('PATCH', `/runs/stops/${id}`, body),
+  updateStop:    (id, body)    => req('PATCH',  `/runs/stops/${id}`, body),
+  deleteStop:    (id)          => req('DELETE', `/runs/stops/${id}`),
   optimise:      (date)        => req('POST',  '/optimise', { delivery_date: date }),
 };

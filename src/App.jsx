@@ -83,6 +83,14 @@ export default function App() {
     }
   }, [date, runId]);
 
+  const handleDeleteStop = useCallback((id) => {
+    setStops(prev => prev.filter(s => s.id !== id));
+  }, []);
+
+  const handleUpdateStop = useCallback((updated) => {
+    setStops(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
+  }, []);
+
   const handleDispatch = useCallback(async () => {
     if (!runId) return;
     try {
@@ -132,6 +140,8 @@ export default function App() {
             runDate={date}
             runStatus={runStatus}
             onDispatch={handleDispatch}
+            onDeleteStop={handleDeleteStop}
+            onUpdateStop={handleUpdateStop}
           />
         </main>
       </div>
