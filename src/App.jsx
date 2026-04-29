@@ -148,13 +148,13 @@ export default function App() {
 
       {error && (
         <div style={{
-          background: 'rgba(139,26,26,0.4)', borderBottom: '1px solid rgba(192,57,43,0.5)',
-          padding: '0.5rem 1.5rem', fontFamily: 'DM Mono', fontSize: '0.75rem', color: '#e88',
+          background: 'rgba(220,38,38,0.06)', borderBottom: '1px solid rgba(220,38,38,0.2)',
+          padding: '0.5rem 1.5rem', fontFamily: 'DM Mono', fontSize: '0.75rem', color: '#DC2626',
           display: 'flex', alignItems: 'center', gap: '1rem',
         }}>
           <span>✗ {error}</span>
           <button onClick={() => setError(null)}
-            style={{ background: 'none', border: 'none', color: '#e88', cursor: 'pointer' }}>✕</button>
+            style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer' }}>✕</button>
         </div>
       )}
 

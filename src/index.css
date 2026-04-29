@@ -3,17 +3,17 @@
 @import "tailwindcss";
 
 :root {
-  --blood:     #0d3349;
-  --rust:      #1a5f7a;
-  --amber:     #2a8fa8;
-  --cream:     #f0f7fa;
-  --dark:      #071c28;
-  --charcoal:  #0e2e42;
-  --mid:       #1d5570;
-  --light-mid: #5b96b0;
-  --bone:      #c8e0ea;
-  --green:     #2ECC71;
-  --green-dark:#27AE60;
+  --dark:      #F8FAFC;   /* page background */
+  --charcoal:  #FFFFFF;   /* card / panel background */
+  --blood:     #F1F5F9;   /* secondary surface — sidebar, header */
+  --mid:       #E2E8F0;   /* borders & dividers */
+  --light-mid: #64748B;   /* secondary text */
+  --bone:      #475569;   /* body text */
+  --cream:     #0F172A;   /* primary text */
+  --rust:      #0F766E;   /* primary action — teal */
+  --amber:     #D97706;   /* warning / highlight */
+  --green:     #059669;   /* success */
+  --green-dark:#047857;   /* success hover */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,17 +23,6 @@ body {
   color: var(--cream);
   font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px),
-    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.008) 80px, rgba(255,255,255,0.008) 81px);
-  pointer-events: none;
-  z-index: 0;
 }
 
 #root { position: relative; z-index: 1; height: 100vh; overflow: hidden; }

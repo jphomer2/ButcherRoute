@@ -12,10 +12,10 @@ function buildMapsUrl(stops, depot) {
 const DEPOT = { lat: 51.750589, lng: 0.157336 };
 
 const STATUS = {
-  building:   { label: 'BUILDING',   color: 'var(--amber)',    bg: 'rgba(42,143,168,0.12)' },
-  optimising: { label: 'OPTIMISING', color: 'var(--amber)',    bg: 'rgba(42,143,168,0.12)' },
-  ready:      { label: 'READY',      color: 'var(--green)',    bg: 'rgba(46,204,113,0.12)' },
-  dispatched: { label: 'DISPATCHED', color: 'var(--light-mid)', bg: 'rgba(91,150,176,0.1)' },
+  building:   { label: 'BUILDING',   color: 'var(--amber)',    bg: 'rgba(217,119,6,0.08)' },
+  optimising: { label: 'OPTIMISING', color: 'var(--amber)',    bg: 'rgba(217,119,6,0.08)' },
+  ready:      { label: 'READY',      color: 'var(--green)',    bg: 'rgba(5,150,105,0.08)' },
+  dispatched: { label: 'DISPATCHED', color: 'var(--light-mid)', bg: 'rgba(100,116,139,0.08)' },
 };
 
 export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, onDispatch, onDeleteStop, onUpdateStop }) {
@@ -27,10 +27,10 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
     : '—';
 
   return (
-    <div style={{ background: 'var(--charcoal)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--charcoal)', borderRadius: '10px', border: '1px solid var(--mid)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
 
       {/* Card header */}
-      <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+      <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid var(--mid)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <div>
           <div style={{ fontFamily: 'DM Sans', fontSize: '1.5rem', letterSpacing: '2px', color: 'var(--cream)', lineHeight: 1 }}>
             Delivery Run
@@ -52,9 +52,9 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
           {mapsUrl && (
             <a href={mapsUrl} target="_blank" rel="noreferrer" style={{
               padding: '0.45rem 1rem', background: 'var(--rust)', borderRadius: '6px',
-              color: 'var(--cream)', fontFamily: 'DM Mono', fontSize: '0.72rem',
+              color: 'white', fontFamily: 'DM Mono', fontSize: '0.72rem',
               letterSpacing: '1px', textDecoration: 'none', whiteSpace: 'nowrap',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: 'none',
             }}>
               OPEN IN MAPS ↗
             </a>

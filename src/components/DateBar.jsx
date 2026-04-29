@@ -9,8 +9,8 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
 
   return (
     <div style={{
-      background: 'var(--charcoal)', borderBottom: '1px solid rgba(255,255,255,0.08)',
-      padding: '0.6rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem',
+      background: 'var(--charcoal)', borderBottom: '1px solid var(--mid)',
+      padding: '0.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem',
     }}>
       <button onClick={() => shift(-1)} style={navBtn}>‹</button>
 
@@ -19,16 +19,16 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
         value={date}
         onChange={e => onChange(e.target.value)}
         style={{
-          background: 'var(--dark)', border: '1px solid rgba(255,255,255,0.15)',
+          background: 'var(--blood)', border: '1px solid var(--mid)',
           borderRadius: '6px', color: 'var(--cream)', fontFamily: 'DM Mono',
-          fontSize: '0.8rem', padding: '0.3rem 0.6rem', outline: 'none', cursor: 'pointer',
+          fontSize: '0.78rem', padding: '0.3rem 0.6rem', outline: 'none', cursor: 'pointer',
         }}
       />
 
       <button onClick={() => shift(1)} style={navBtn}>›</button>
 
       {isToday && (
-        <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--amber)', letterSpacing: '1px' }}>
+        <span style={{ fontFamily: 'DM Mono', fontSize: '0.62rem', color: 'var(--rust)', letterSpacing: '1px', fontWeight: 500 }}>
           TODAY
         </span>
       )}
@@ -36,28 +36,26 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
       <div style={{ flex: 1 }} />
 
       {stopCount > 0 && (
-        <button
-          onClick={onClear}
-          style={{
-            padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.15)',
-            cursor: 'pointer', background: 'transparent', color: 'var(--light-mid)',
-            fontFamily: 'DM Mono', fontSize: '0.72rem', letterSpacing: '1px',
-          }}
-        >
-          CLEAR
+        <button onClick={onClear} style={{
+          padding: '0.38rem 0.9rem', borderRadius: '6px', border: '1px solid var(--mid)',
+          cursor: 'pointer', background: 'transparent', color: 'var(--light-mid)',
+          fontFamily: 'DM Mono', fontSize: '0.7rem', letterSpacing: '0.5px',
+          transition: 'all 0.15s',
+        }}>
+          Clear
         </button>
       )}
+
       {stopCount > 0 && runStatus !== 'dispatched' && (
-        <button
-          onClick={onOptimise}
-          disabled={optimising}
-          style={{
-            padding: '0.4rem 1rem', borderRadius: '6px', border: 'none', cursor: optimising ? 'not-allowed' : 'pointer',
-            background: optimising ? 'var(--mid)' : 'var(--rust)', color: 'var(--cream)',
-            fontFamily: 'DM Mono', fontSize: '0.72rem', letterSpacing: '1px', transition: 'background 0.2s',
-          }}
-        >
-          {optimising ? 'OPTIMISING...' : '⚡ OPTIMISE ROUTE'}
+        <button onClick={onOptimise} disabled={optimising} style={{
+          padding: '0.38rem 1rem', borderRadius: '6px', border: 'none',
+          cursor: optimising ? 'not-allowed' : 'pointer',
+          background: optimising ? '#94A3B8' : 'var(--rust)',
+          color: 'white', fontFamily: 'DM Mono', fontSize: '0.7rem',
+          letterSpacing: '0.5px', transition: 'background 0.2s',
+          display: 'flex', alignItems: 'center', gap: '5px',
+        }}>
+          {optimising ? 'Optimising…' : '⚡ Optimise Route'}
         </button>
       )}
     </div>
@@ -65,7 +63,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
 }
 
 const navBtn = {
-  background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px',
-  color: 'var(--bone)', cursor: 'pointer', padding: '0.2rem 0.6rem',
-  fontFamily: 'DM Mono', fontSize: '0.9rem',
+  background: 'none', border: '1px solid var(--mid)', borderRadius: '6px',
+  color: 'var(--bone)', cursor: 'pointer', padding: '0.2rem 0.65rem',
+  fontFamily: 'DM Mono', fontSize: '0.9rem', transition: 'border-color 0.15s',
 };
