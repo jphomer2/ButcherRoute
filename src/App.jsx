@@ -66,16 +66,24 @@ export default function App() {
     setError(null);
     try {
       const result = await api.optimise(date);
-      // Reload stops with updated route_sequence
-      if (runId) {
-        const updated = await api.getStops(runId);
+
+      // Ensure we have a runId — fetch from API if not in state
+      let currentRunId = runId;
+      if (!currentRunId) {
+        const runs = await api.getRuns(date);
+        if (runs?.length) {
+          currentRunId = runs[0].id;
+          setRunId(currentRunId);
+        }
+      }
+
+      if (currentRunId) {
+        const updated = await api.getStops(currentRunId);
         setStops(updated);
+        await api.updateRun(currentRunId, { route_url: result.maps_url, status: 'ready' });
       }
+
       setRunStatus('ready');
-      if (result.maps_url && runId) {
-        // Update run with maps URL
-        await api.updateRun(runId, { route_url: result.maps_url, status: 'ready' });
-      }
     } catch (e) {
       setError(e.message);
     } finally {
