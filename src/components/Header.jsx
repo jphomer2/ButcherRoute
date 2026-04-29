@@ -1,28 +1,33 @@
-export default function Header({ runDate }) {
-  const today = runDate || new Date().toLocaleDateString('en-GB', {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-  });
-
+export default function Header() {
   return (
-    <header style={{ background: 'var(--charcoal)', borderBottom: '3px solid var(--rust)' }}
-      className="px-8 flex items-center justify-between h-16 sticky top-0 z-50">
+    <header style={{ background: 'var(--charcoal)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+      className="px-6 flex items-center justify-between h-14 sticky top-0 z-50">
+
       <div className="flex items-center gap-3">
-        <div style={{ background: 'var(--rust)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
-          className="w-8 h-8 flex items-center justify-center text-sm">
-          🥩
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="var(--rust)" />
+          <path d="M5 19h3.5l1.5-7h9l1.5 7H23M9 14h10M7 19a2 2 0 1 0 4 0M17 19a2 2 0 1 0 4 0" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <div>
+          <div style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: '3px', lineHeight: 1 }}>
+            BUTCHER <span style={{ color: 'var(--amber)' }}>ROUTE</span>
+          </div>
+          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--light-mid)', letterSpacing: '2px' }}>
+            SUFFOLK FARMS · DISPATCH
+          </div>
         </div>
-        <span style={{ fontFamily: 'Bebas Neue', fontSize: '2rem', letterSpacing: '3px' }}>
-          Suffolk <span style={{ color: 'var(--amber)' }}>Farms</span>
-        </span>
       </div>
 
-      <div className="flex items-center gap-6" style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--light-mid)' }}>
-        <span>{today}</span>
-        <span style={{
-          background: 'rgba(46,204,113,0.15)', border: '1px solid var(--green)',
-          color: 'var(--green)', padding: '3px 10px', borderRadius: '20px',
-          fontSize: '0.65rem', letterSpacing: '1px',
-        }}>● LIVE</span>
+      <div className="flex items-center gap-4" style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
+        <span>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          background: 'rgba(46,204,113,0.1)', border: '1px solid rgba(46,204,113,0.3)',
+          color: 'var(--green)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.62rem', letterSpacing: '1px',
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
+          LIVE
+        </div>
       </div>
     </header>
   );

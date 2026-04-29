@@ -14,6 +14,8 @@ export default function App() {
   const [selectedMsg, setSelectedMsg] = useState(null);
   const [runStatus,  setRunStatus]  = useState('building');
   const [runId,      setRunId]      = useState(null);
+  const [runMiles,   setRunMiles]   = useState(null);
+  const [runMinutes, setRunMinutes] = useState(null);
   const [optimising, setOptimising] = useState(false);
   const [error,      setError]      = useState(null);
 
@@ -22,12 +24,16 @@ export default function App() {
     setStops([]);
     setRunId(null);
     setRunStatus('building');
+    setRunMiles(null);
+    setRunMinutes(null);
     api.getRuns(date)
       .then(runs => {
         if (runs?.length) {
           const run = runs[0];
           setRunId(run.id);
           setRunStatus(run.status);
+          setRunMiles(run.total_miles);
+          setRunMinutes(run.est_drive_minutes);
           return api.getStops(run.id);
         }
       })
@@ -83,6 +89,8 @@ export default function App() {
         await api.updateRun(currentRunId, { route_url: result.maps_url, status: 'ready' });
       }
 
+      setRunMiles(result.total_miles);
+      setRunMinutes(result.est_drive_minutes);
       setRunStatus('ready');
     } catch (e) {
       setError(e.message);
@@ -108,6 +116,8 @@ export default function App() {
     setMessages([]);
     setRunId(null);
     setRunStatus('building');
+    setRunMiles(null);
+    setRunMinutes(null);
     setError(null);
   }, [runId]);
 
@@ -161,6 +171,8 @@ export default function App() {
             stops={stops}
             runDate={date}
             runStatus={runStatus}
+            runMiles={runMiles}
+            runMinutes={runMinutes}
             onDispatch={handleDispatch}
             onDeleteStop={handleDeleteStop}
             onUpdateStop={handleUpdateStop}
