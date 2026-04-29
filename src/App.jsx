@@ -113,8 +113,9 @@ export default function App() {
 
   const handleDispatch = useCallback(async () => {
     if (!runId) return;
+    if (!window.confirm('Send route to driver now?')) return;
     try {
-      await api.updateRun(runId, { status: 'dispatched' });
+      await api.dispatchRun(runId);
       setRunStatus('dispatched');
     } catch (e) {
       setError(e.message);
