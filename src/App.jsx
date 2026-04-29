@@ -149,7 +149,7 @@ export default function App() {
       {error && (
         <div style={{
           background: 'rgba(139,26,26,0.4)', borderBottom: '1px solid rgba(192,57,43,0.5)',
-          padding: '0.5rem 1.5rem', fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', color: '#e88',
+          padding: '0.5rem 1.5rem', fontFamily: 'DM Mono', fontSize: '0.75rem', color: '#e88',
           display: 'flex', alignItems: 'center', gap: '1rem',
         }}>
           <span>✗ {error}</span>

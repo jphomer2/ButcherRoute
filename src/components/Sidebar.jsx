@@ -14,14 +14,14 @@ function MessageCard({ msg, selected, onClick }) {
       }}
     >
       <div className="flex items-start justify-between gap-2">
-        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--light-mid)' }}>
+        <div style={{ fontFamily: 'DM Mono', fontSize: '0.72rem', color: 'var(--light-mid)' }}>
           {msg.from_number || 'WhatsApp'}
         </div>
         <span style={{
           fontSize: '0.6rem', letterSpacing: '1px', padding: '2px 6px', borderRadius: '4px',
           background: parsed ? 'rgba(46,204,113,0.15)' : 'rgba(230,126,34,0.15)',
           color: parsed ? 'var(--green)' : 'var(--amber)',
-          fontFamily: 'IBM Plex Mono', whiteSpace: 'nowrap',
+          fontFamily: 'DM Mono', whiteSpace: 'nowrap',
         }}>
           {parsed ? '✓ PARSED' : '⏳ PENDING'}
         </span>
@@ -29,7 +29,7 @@ function MessageCard({ msg, selected, onClick }) {
       <div style={{ fontSize: '0.8rem', color: 'var(--bone)', marginTop: '0.4rem', lineHeight: 1.4 }}>
         {msg.body?.slice(0, 80)}{msg.body?.length > 80 ? '…' : ''}
       </div>
-      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--mid)', marginTop: '0.4rem' }}>
+      <div style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--mid)', marginTop: '0.4rem' }}>
         {msg.received_at ? new Date(msg.received_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}
       </div>
     </div>
@@ -46,7 +46,7 @@ export default function Sidebar({ messages, selectedMsg, onSelectMsg, onParsed, 
       <ParsePanel onParsed={onParsed} deliveryDate={deliveryDate} />
 
       <div style={{ padding: '1rem 1.25rem 0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--light-mid)' }}
+        <div style={{ fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--light-mid)' }}
           className="uppercase flex justify-between items-center">
           <span>WhatsApp Inbox</span>
           <span style={{ background: '#25D366', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.6rem' }}>
@@ -57,7 +57,7 @@ export default function Sidebar({ messages, selectedMsg, onSelectMsg, onParsed, 
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.25rem' }}>
         {messages.length === 0 ? (
-          <div style={{ color: 'var(--mid)', fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', textAlign: 'center', marginTop: '2rem' }}>
+          <div style={{ color: 'var(--mid)', fontFamily: 'DM Mono', fontSize: '0.72rem', textAlign: 'center', marginTop: '2rem' }}>
             No messages yet.<br />Paste orders above to get started.
           </div>
         ) : (

@@ -32,17 +32,17 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
       {/* Card header */}
       <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <div>
-          <div style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '2px', color: 'var(--cream)', lineHeight: 1 }}>
+          <div style={{ fontFamily: 'DM Sans', fontSize: '1.5rem', letterSpacing: '2px', color: 'var(--cream)', lineHeight: 1 }}>
             Delivery Run
           </div>
-          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--light-mid)', marginTop: '3px' }}>
+          <div style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)', marginTop: '3px' }}>
             {dateLabel}
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
-            fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', letterSpacing: '2px',
+            fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '2px',
             color: status.color, background: status.bg, border: `1px solid ${status.color}40`,
             padding: '4px 12px', borderRadius: '20px',
           }}>
@@ -52,7 +52,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
           {mapsUrl && (
             <a href={mapsUrl} target="_blank" rel="noreferrer" style={{
               padding: '0.45rem 1rem', background: 'var(--rust)', borderRadius: '6px',
-              color: 'var(--cream)', fontFamily: 'IBM Plex Mono', fontSize: '0.72rem',
+              color: 'var(--cream)', fontFamily: 'DM Mono', fontSize: '0.72rem',
               letterSpacing: '1px', textDecoration: 'none', whiteSpace: 'nowrap',
               border: '1px solid rgba(255,255,255,0.1)',
             }}>
@@ -63,7 +63,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
           {onDispatch && stops.length > 0 && runStatus !== 'dispatched' && (
             <button onClick={onDispatch} style={{
               padding: '0.45rem 1.1rem', background: 'var(--green-dark)', border: 'none',
-              borderRadius: '6px', color: 'white', fontFamily: 'IBM Plex Mono',
+              borderRadius: '6px', color: 'white', fontFamily: 'DM Mono',
               fontSize: '0.72rem', letterSpacing: '1px', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '6px',
             }}>
@@ -74,7 +74,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
 
           {runStatus === 'dispatched' && (
             <div style={{
-              fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--green)',
+              fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--green)',
               display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -89,7 +89,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
 
       {/* Stop list */}
       <div style={{ padding: '1rem 1.5rem 1.5rem', maxHeight: 'calc(100vh - 380px)', overflowY: 'auto' }}>
-        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', letterSpacing: '3px', color: 'var(--light-mid)', marginBottom: '0.75rem' }}>
+        <div style={{ fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '3px', color: 'var(--light-mid)', marginBottom: '0.75rem' }}>
           ROUTE STOPS
         </div>
         <StopList stops={stops} onDelete={onDeleteStop} onUpdate={onUpdateStop} />

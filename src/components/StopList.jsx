@@ -13,7 +13,7 @@ function Tag({ children, color }) {
     <span style={{
       fontSize: '0.6rem', background: c.bg, border: `1px solid ${c.border}`,
       color: c.text, padding: '1px 6px', borderRadius: '4px',
-      fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px',
+      fontFamily: 'DM Mono', letterSpacing: '0.5px',
     }}>
       {children}
     </span>
@@ -74,7 +74,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
         background: index === 0 ? 'var(--rust)' : 'rgba(255,255,255,0.08)',
         border: index === 0 ? 'none' : '1px solid rgba(255,255,255,0.12)',
         color: index === 0 ? 'white' : 'var(--bone)', flexShrink: 0,
-        fontFamily: 'IBM Plex Mono',
+        fontFamily: 'DM Mono',
       }}>
         {index === 0 ? '⌂' : stop.route_sequence || index + 1}
       </div>
@@ -99,7 +99,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
       {/* Quantity + actions */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
         {/* Quantity — click to edit */}
-        <div style={{ textAlign: 'right', fontFamily: 'IBM Plex Mono' }}>
+        <div style={{ textAlign: 'right', fontFamily: 'DM Mono' }}>
           {editingQty ? (
             <input
               autoFocus
@@ -110,7 +110,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
               onKeyDown={e => { if (e.key === 'Enter') commitQty(); if (e.key === 'Escape') setEditingQty(false); }}
               style={{
                 width: '4rem', background: 'var(--charcoal)', border: '1px solid var(--amber)',
-                borderRadius: '4px', color: 'var(--cream)', fontFamily: 'IBM Plex Mono',
+                borderRadius: '4px', color: 'var(--cream)', fontFamily: 'DM Mono',
                 fontSize: '0.9rem', padding: '2px 4px', textAlign: 'right', outline: 'none',
               }}
             />
@@ -139,7 +139,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
               background: stop.tbc ? 'rgba(192,57,43,0.2)' : 'rgba(255,255,255,0.06)',
               border: `1px solid ${stop.tbc ? 'rgba(192,57,43,0.4)' : 'rgba(255,255,255,0.12)'}`,
               borderRadius: '4px', color: stop.tbc ? '#e88' : 'var(--light-mid)',
-              fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', padding: '2px 6px', cursor: 'pointer',
+              fontFamily: 'DM Mono', fontSize: '0.6rem', padding: '2px 6px', cursor: 'pointer',
             }}
           >
             {stop.tbc ? 'TBC ✓' : 'TBC?'}
@@ -149,7 +149,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
             title="Remove stop"
             style={{
               background: 'rgba(139,26,26,0.2)', border: '1px solid rgba(192,57,43,0.3)',
-              borderRadius: '4px', color: '#e88', fontFamily: 'IBM Plex Mono',
+              borderRadius: '4px', color: '#e88', fontFamily: 'DM Mono',
               fontSize: '0.7rem', padding: '2px 8px', cursor: 'pointer',
             }}
           >
@@ -164,7 +164,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
 export default function StopList({ stops, onDelete, onUpdate }) {
   if (!stops.length) {
     return (
-      <div style={{ color: 'var(--mid)', fontFamily: 'IBM Plex Mono', fontSize: '0.8rem', textAlign: 'center', padding: '3rem 0' }}>
+      <div style={{ color: 'var(--mid)', fontFamily: 'DM Mono', fontSize: '0.8rem', textAlign: 'center', padding: '3rem 0' }}>
         No stops yet. Paste WhatsApp orders to build today's run.
       </div>
     );
@@ -177,7 +177,7 @@ export default function StopList({ stops, onDelete, onUpdate }) {
     <div>
       {early.length > 0 && (
         <>
-          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--amber)', marginBottom: '0.5rem' }}>
+          <div style={{ fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--amber)', marginBottom: '0.5rem' }}>
             ▲ PRIORITY — EARLY DROPS
           </div>
           {early.map((s, i) => (

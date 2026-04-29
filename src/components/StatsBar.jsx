@@ -8,13 +8,13 @@ function StatCard({ label, value, sub, accent, dim }) {
       flex: 1, minWidth: 0, borderTop: `2px solid ${color}`,
       border: '1px solid rgba(255,255,255,0.06)', borderTopWidth: '2px', borderTopColor: color,
     }}>
-      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.58rem', letterSpacing: '2px', color: 'var(--light-mid)', marginBottom: '0.3rem' }}>
+      <div style={{ fontFamily: 'DM Mono', fontSize: '0.58rem', letterSpacing: '2px', color: 'var(--light-mid)', marginBottom: '0.3rem' }}>
         {label}
       </div>
-      <div style={{ fontFamily: 'Bebas Neue', fontSize: '2rem', color: dim ? 'var(--mid)' : 'var(--cream)', lineHeight: 1 }}>
+      <div style={{ fontFamily: 'DM Sans', fontSize: '2rem', color: dim ? 'var(--mid)' : 'var(--cream)', lineHeight: 1 }}>
         {value ?? '—'}
       </div>
-      {sub && <div style={{ fontSize: '0.65rem', color: 'var(--light-mid)', marginTop: '3px', fontFamily: 'IBM Plex Mono' }}>{sub}</div>}
+      {sub && <div style={{ fontSize: '0.65rem', color: 'var(--light-mid)', marginTop: '3px', fontFamily: 'DM Mono' }}>{sub}</div>}
     </div>
   );
 }

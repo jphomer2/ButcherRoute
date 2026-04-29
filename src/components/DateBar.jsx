@@ -20,7 +20,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
         onChange={e => onChange(e.target.value)}
         style={{
           background: 'var(--dark)', border: '1px solid rgba(255,255,255,0.15)',
-          borderRadius: '6px', color: 'var(--cream)', fontFamily: 'IBM Plex Mono',
+          borderRadius: '6px', color: 'var(--cream)', fontFamily: 'DM Mono',
           fontSize: '0.8rem', padding: '0.3rem 0.6rem', outline: 'none', cursor: 'pointer',
         }}
       />
@@ -28,7 +28,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
       <button onClick={() => shift(1)} style={navBtn}>›</button>
 
       {isToday && (
-        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--amber)', letterSpacing: '1px' }}>
+        <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--amber)', letterSpacing: '1px' }}>
           TODAY
         </span>
       )}
@@ -41,7 +41,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
           style={{
             padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.15)',
             cursor: 'pointer', background: 'transparent', color: 'var(--light-mid)',
-            fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', letterSpacing: '1px',
+            fontFamily: 'DM Mono', fontSize: '0.72rem', letterSpacing: '1px',
           }}
         >
           CLEAR
@@ -54,7 +54,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
           style={{
             padding: '0.4rem 1rem', borderRadius: '6px', border: 'none', cursor: optimising ? 'not-allowed' : 'pointer',
             background: optimising ? 'var(--mid)' : 'var(--rust)', color: 'var(--cream)',
-            fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', letterSpacing: '1px', transition: 'background 0.2s',
+            fontFamily: 'DM Mono', fontSize: '0.72rem', letterSpacing: '1px', transition: 'background 0.2s',
           }}
         >
           {optimising ? 'OPTIMISING...' : '⚡ OPTIMISE ROUTE'}
@@ -67,5 +67,5 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
 const navBtn = {
   background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px',
   color: 'var(--bone)', cursor: 'pointer', padding: '0.2rem 0.6rem',
-  fontFamily: 'IBM Plex Mono', fontSize: '0.9rem',
+  fontFamily: 'DM Mono', fontSize: '0.9rem',
 };

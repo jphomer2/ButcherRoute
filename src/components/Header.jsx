@@ -9,16 +9,16 @@ export default function Header() {
           <path d="M5 19h3.5l1.5-7h9l1.5 7H23M9 14h10M7 19a2 2 0 1 0 4 0M17 19a2 2 0 1 0 4 0" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
         <div>
-          <div style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: '3px', lineHeight: 1 }}>
+          <div style={{ fontFamily: 'DM Sans', fontSize: '1.4rem', letterSpacing: '3px', lineHeight: 1 }}>
             BUTCHER <span style={{ color: 'var(--amber)' }}>ROUTE</span>
           </div>
-          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--light-mid)', letterSpacing: '2px' }}>
+          <div style={{ fontFamily: 'DM Mono', fontSize: '0.55rem', color: 'var(--light-mid)', letterSpacing: '2px' }}>
             SUFFOLK FARMS · DISPATCH
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4" style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
+      <div className="flex items-center gap-4" style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
         <span>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',

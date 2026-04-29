@@ -24,7 +24,7 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
   return (
     <div style={{ background: 'var(--charcoal)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       className="p-4">
-      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--light-mid)' }}
+      <div style={{ fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '3px', color: 'var(--light-mid)' }}
         className="uppercase mb-2">Paste WhatsApp Orders</div>
 
       <textarea
@@ -34,14 +34,14 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
         rows={5}
         style={{
           width: '100%', background: 'var(--dark)', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '6px', color: 'var(--cream)', fontFamily: 'IBM Plex Mono',
+          borderRadius: '6px', color: 'var(--cream)', fontFamily: 'DM Mono',
           fontSize: '0.78rem', padding: '0.75rem', resize: 'vertical', outline: 'none',
         }}
         onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleParse(); }}
       />
 
       {error && (
-        <div style={{ color: '#e88', fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', marginTop: '0.4rem' }}>
+        <div style={{ color: '#e88', fontFamily: 'DM Mono', fontSize: '0.72rem', marginTop: '0.4rem' }}>
           ✗ {error}
         </div>
       )}
@@ -53,7 +53,7 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
           marginTop: '0.6rem', width: '100%', padding: '0.6rem',
           background: loading ? 'var(--mid)' : 'var(--rust)',
           border: 'none', borderRadius: '6px', color: 'var(--cream)',
-          fontFamily: 'IBM Plex Mono', fontSize: '0.78rem', letterSpacing: '1px',
+          fontFamily: 'DM Mono', fontSize: '0.78rem', letterSpacing: '1px',
           cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.2s',
         }}
       >
