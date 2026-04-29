@@ -91,6 +91,18 @@ export default function App() {
     setStops(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
   }, []);
 
+  const handleClear = useCallback(async () => {
+    if (!window.confirm('Clear all stops for this date?')) return;
+    if (runId) {
+      try { await api.deleteRun(runId); } catch {}
+    }
+    setStops([]);
+    setMessages([]);
+    setRunId(null);
+    setRunStatus('building');
+    setError(null);
+  }, [runId]);
+
   const handleDispatch = useCallback(async () => {
     if (!runId) return;
     try {
@@ -109,6 +121,7 @@ export default function App() {
         date={date}
         onChange={setDate}
         onOptimise={handleOptimise}
+        onClear={handleClear}
         optimising={optimising}
         runStatus={runStatus}
         stopCount={stops.length}
