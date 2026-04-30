@@ -132,7 +132,12 @@ export default function App() {
 
   const handleClear = useCallback(async () => {
     if (!window.confirm('Clear all stops for this date?')) return;
-    try { await api.clearDate(date); } catch {}
+    try {
+      await api.clearDate(date);
+    } catch (e) {
+      setError('Clear failed — ' + e.message);
+      return;
+    }
     setStops([]);
     setMessages([]);
     setRunId(null);
