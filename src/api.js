@@ -27,5 +27,6 @@ export const api = {
   deleteStop:    (id)          => req('DELETE', `/runs/stops/${id}`),
   optimise:      (date)        => req('POST',  '/optimise', { delivery_date: date }),
   deleteRun:     (id)          => req('DELETE', `/runs/${id}`),
+  clearDate:     (date)        => req('DELETE', `/runs?date=${date}`),
   dispatchRun:   (id)          => req('POST',   `/runs/${id}/dispatch`),
 };
