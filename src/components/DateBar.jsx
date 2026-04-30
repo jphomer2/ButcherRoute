@@ -35,7 +35,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
 
       <div style={{ flex: 1 }} />
 
-      {stopCount > 0 && (
+      {stopCount > 0 && runStatus !== 'dispatched' && (
         <button onClick={onClear} style={{
           padding: '0.38rem 0.9rem', borderRadius: '6px', border: '1px solid var(--mid)',
           cursor: 'pointer', background: 'transparent', color: 'var(--light-mid)',

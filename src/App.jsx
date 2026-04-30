@@ -122,10 +122,21 @@ export default function App() {
 
   const handleDispatch = useCallback(async () => {
     if (!runId) return;
-    if (!window.confirm('Send route to driver now?')) return;
+    if (!window.confirm('Commit and dispatch this run? Stops will become read-only.')) return;
     try {
       await api.dispatchRun(runId);
       setRunStatus('dispatched');
+    } catch (e) {
+      setError(e.message);
+    }
+  }, [runId]);
+
+  const handleUnlock = useCallback(async () => {
+    if (!runId) return;
+    if (!window.confirm('Unlock this run? Stops will become editable again.')) return;
+    try {
+      await api.updateRun(runId, { status: 'ready' });
+      setRunStatus('ready');
     } catch (e) {
       setError(e.message);
     }
@@ -173,6 +184,7 @@ export default function App() {
             runMiles={runMiles}
             runMinutes={runMinutes}
             onDispatch={handleDispatch}
+            onUnlock={handleUnlock}
             onDeleteStop={handleDeleteStop}
             onUpdateStop={handleUpdateStop}
           />

@@ -20,7 +20,7 @@ function Tag({ children, color }) {
   );
 }
 
-function StopRow({ stop, index, onDelete, onUpdate }) {
+function StopRow({ stop, index, onDelete, onUpdate, locked }) {
   const [editingQty, setEditingQty] = useState(false);
   const [qtyVal, setQtyVal]         = useState(stop.quantity ?? '');
   const [saving, setSaving]         = useState(false);
@@ -60,7 +60,7 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered ? 'var(--blood)' : 'var(--charcoal)',
+        background: hovered && !locked ? 'var(--blood)' : 'var(--charcoal)',
         borderRadius: '6px', padding: '0.75rem',
         marginBottom: '0.5rem', border: '1px solid var(--mid)',
         display: 'grid', gridTemplateColumns: '2rem 1fr auto', gap: '0.75rem', alignItems: 'start',
@@ -99,9 +99,8 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
 
       {/* Quantity + actions */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
-        {/* Quantity — click to edit */}
         <div style={{ textAlign: 'right', fontFamily: 'DM Mono' }}>
-          {editingQty ? (
+          {editingQty && !locked ? (
             <input
               autoFocus
               type="number"
@@ -117,12 +116,12 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
             />
           ) : (
             <div
-              onClick={() => setEditingQty(true)}
-              title="Click to edit quantity"
+              onClick={() => !locked && setEditingQty(true)}
+              title={locked ? undefined : 'Click to edit quantity'}
               style={{
                 fontSize: '0.9rem', color: saving ? 'var(--light-mid)' : 'var(--cream)',
-                fontWeight: 500, cursor: 'text',
-                borderBottom: hovered ? '1px dashed var(--light-mid)' : '1px dashed transparent',
+                fontWeight: 500, cursor: locked ? 'default' : 'text',
+                borderBottom: hovered && !locked ? '1px dashed var(--light-mid)' : '1px dashed transparent',
               }}
             >
               {stop.quantity ?? '—'}
@@ -131,38 +130,40 @@ function StopRow({ stop, index, onDelete, onUpdate }) {
           <div style={{ fontSize: '0.65rem', color: 'var(--light-mid)' }}>{stop.unit || 'cases'}</div>
         </div>
 
-        {/* Action buttons — visible on hover */}
-        <div style={{ display: 'flex', gap: '0.3rem', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
-          <button
-            onClick={toggleTbc}
-            title={stop.tbc ? 'Mark confirmed' : 'Mark TBC'}
-            style={{
-              background: stop.tbc ? 'rgba(220,38,38,0.08)' : 'var(--blood)',
-              border: `1px solid ${stop.tbc ? 'rgba(220,38,38,0.25)' : 'var(--mid)'}`,
-              borderRadius: '4px', color: stop.tbc ? '#DC2626' : 'var(--light-mid)',
-              fontFamily: 'DM Mono', fontSize: '0.6rem', padding: '2px 6px', cursor: 'pointer',
-            }}
-          >
-            {stop.tbc ? 'TBC ✓' : 'TBC?'}
-          </button>
-          <button
-            onClick={handleDelete}
-            title="Remove stop"
-            style={{
-              background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
-              borderRadius: '4px', color: '#DC2626', fontFamily: 'DM Mono',
-              fontSize: '0.7rem', padding: '2px 8px', cursor: 'pointer',
-            }}
-          >
-            ✕
-          </button>
-        </div>
+        {/* Action buttons — hidden when locked */}
+        {!locked && (
+          <div style={{ display: 'flex', gap: '0.3rem', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
+            <button
+              onClick={toggleTbc}
+              title={stop.tbc ? 'Mark confirmed' : 'Mark TBC'}
+              style={{
+                background: stop.tbc ? 'rgba(220,38,38,0.08)' : 'var(--blood)',
+                border: `1px solid ${stop.tbc ? 'rgba(220,38,38,0.25)' : 'var(--mid)'}`,
+                borderRadius: '4px', color: stop.tbc ? '#DC2626' : 'var(--light-mid)',
+                fontFamily: 'DM Mono', fontSize: '0.6rem', padding: '2px 6px', cursor: 'pointer',
+              }}
+            >
+              {stop.tbc ? 'TBC ✓' : 'TBC?'}
+            </button>
+            <button
+              onClick={handleDelete}
+              title="Remove stop"
+              style={{
+                background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
+                borderRadius: '4px', color: '#DC2626', fontFamily: 'DM Mono',
+                fontSize: '0.7rem', padding: '2px 8px', cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default function StopList({ stops, onDelete, onUpdate }) {
+export default function StopList({ stops, onDelete, onUpdate, locked }) {
   if (!stops.length) {
     return (
       <div style={{ color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.8rem', textAlign: 'center', padding: '3rem 0' }}>
@@ -182,13 +183,13 @@ export default function StopList({ stops, onDelete, onUpdate }) {
             ▲ PRIORITY — EARLY DROPS
           </div>
           {early.map((s, i) => (
-            <StopRow key={s.id} stop={s} index={i} onDelete={onDelete} onUpdate={onUpdate} />
+            <StopRow key={s.id} stop={s} index={i} onDelete={onDelete} onUpdate={onUpdate} locked={locked} />
           ))}
           <div style={{ borderTop: '1px solid var(--mid)', margin: '0.75rem 0' }} />
         </>
       )}
       {normal.map((s, i) => (
-        <StopRow key={s.id} stop={s} index={early.length + i} onDelete={onDelete} onUpdate={onUpdate} />
+        <StopRow key={s.id} stop={s} index={early.length + i} onDelete={onDelete} onUpdate={onUpdate} locked={locked} />
       ))}
     </div>
   );

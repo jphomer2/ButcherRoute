@@ -18,16 +18,43 @@ const STATUS = {
   dispatched: { label: 'DISPATCHED', color: 'var(--light-mid)', bg: 'rgba(100,116,139,0.08)' },
 };
 
-export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, onDispatch, onDeleteStop, onUpdateStop }) {
+export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, onDispatch, onUnlock, onDeleteStop, onUpdateStop }) {
   const mapsUrl = buildMapsUrl(stops, DEPOT);
   const status  = STATUS[runStatus] || STATUS.building;
+  const locked  = runStatus === 'dispatched';
 
   const dateLabel = runDate
     ? new Date(runDate + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     : '—';
 
   return (
-    <div style={{ background: 'var(--charcoal)', borderRadius: '10px', border: '1px solid var(--mid)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+    <div style={{ background: 'var(--charcoal)', borderRadius: '10px', border: `1px solid ${locked ? 'rgba(100,116,139,0.3)' : 'var(--mid)'}`, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+
+      {/* Locked banner */}
+      {locked && (
+        <div style={{
+          background: 'rgba(100,116,139,0.06)', borderBottom: '1px solid rgba(100,116,139,0.2)',
+          padding: '0.5rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ fontFamily: 'DM Mono', fontSize: '0.68rem', color: 'var(--light-mid)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            This run is committed — stops are read-only
+          </div>
+          <button
+            onClick={onUnlock}
+            style={{
+              background: 'none', border: '1px solid var(--mid)', borderRadius: '5px',
+              color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
+              padding: '2px 10px', cursor: 'pointer', letterSpacing: '0.5px',
+            }}
+          >
+            Unlock
+          </button>
+        </div>
+      )}
 
       {/* Card header */}
       <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid var(--mid)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
@@ -60,7 +87,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
             </a>
           )}
 
-          {onDispatch && stops.length > 0 && runStatus !== 'dispatched' && (
+          {onDispatch && stops.length > 0 && !locked && (
             <button onClick={onDispatch} style={{
               padding: '0.45rem 1.1rem', background: 'var(--green-dark)', border: 'none',
               borderRadius: '6px', color: 'white', fontFamily: 'DM Mono',
@@ -72,7 +99,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
             </button>
           )}
 
-          {runStatus === 'dispatched' && (
+          {locked && (
             <div style={{
               fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--green)',
               display: 'flex', alignItems: 'center', gap: '6px',
@@ -92,7 +119,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
         <div style={{ fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '3px', color: 'var(--light-mid)', marginBottom: '0.75rem' }}>
           ROUTE STOPS
         </div>
-        <StopList stops={stops} onDelete={onDeleteStop} onUpdate={onUpdateStop} />
+        <StopList stops={stops} onDelete={onDeleteStop} onUpdate={onUpdateStop} locked={locked} />
       </div>
     </div>
   );
