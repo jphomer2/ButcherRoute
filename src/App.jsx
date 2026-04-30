@@ -41,8 +41,27 @@ export default function App() {
       .catch(() => {});
   }, [date]);
 
-  const handleParsed = useCallback((result) => {
-    if (!result.stops.length) return;  // nothing new — leave all state untouched
+  const handleParsed = useCallback(async (result) => {
+    if (!result.stops.length) {
+      // No new stops — but if the UI state is empty, load existing stops from DB
+      if (result.run_id && !runId) {
+        setRunId(result.run_id);
+        try {
+          const [s, runs] = await Promise.all([
+            api.getStops(result.run_id),
+            api.getRuns(date),
+          ]);
+          if (s?.length) setStops(s);
+          if (runs?.length) {
+            const run = runs[0];
+            setRunStatus(run.status);
+            setRunMiles(run.total_miles);
+            setRunMinutes(run.est_drive_minutes);
+          }
+        } catch {}
+      }
+      return;
+    }
 
     setStops(prev => {
       const existingIds = new Set(prev.map(s => s.id));
@@ -64,7 +83,7 @@ export default function App() {
       setRunId(result.run_id);
       setRunStatus('building');
     }
-  }, [runId]);
+  }, [runId, date]);
 
   const handleOptimise = useCallback(async () => {
     setOptimising(true);

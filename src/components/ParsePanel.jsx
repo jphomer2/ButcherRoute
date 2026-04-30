@@ -14,10 +14,10 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
     setNotice(null);
     try {
       const result = await api.parseMessage({ message: text.trim(), delivery_date: deliveryDate });
+      onParsed(result);
       if (!result.stops.length) {
-        setNotice('All stops in this message are already in today\'s run.');
+        setNotice('All stops in this message are already in today\'s run — loaded below.');
       } else {
-        onParsed(result);
         setText('');
       }
     } catch (e) {
