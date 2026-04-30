@@ -127,9 +127,15 @@ export default function App() {
 
   const handleClear = useCallback(async () => {
     if (!window.confirm('Clear all stops for this date?')) return;
-    if (runId) {
-      try { await api.deleteRun(runId); } catch {}
-    }
+    try {
+      let id = runId;
+      if (!id) {
+        const runs = await api.getRuns(date);
+        if (runs?.length) id = runs[0].id;
+      }
+      if (id) await api.deleteRun(id);
+    } catch {}
+
     setStops([]);
     setMessages([]);
     setRunId(null);
@@ -137,7 +143,7 @@ export default function App() {
     setRunMiles(null);
     setRunMinutes(null);
     setError(null);
-  }, [runId]);
+  }, [runId, date]);
 
   const handleDispatch = useCallback(async () => {
     if (!runId) return;
