@@ -41,7 +41,7 @@ export default function App() {
       .catch(() => {});
   }, [date]);
 
-  const handleParsed = useCallback(async (result) => {
+  const handleParsed = useCallback((result) => {
     setStops(prev => {
       const existingIds = new Set(prev.map(s => s.id));
       return [...prev, ...result.stops.filter(s => !existingIds.has(s.id))];
@@ -58,14 +58,12 @@ export default function App() {
       }, ...prev];
     });
 
-    if (!runId) {
-      try {
-        const run = await api.createRun({ delivery_date: date });
-        setRunId(run.id);
-        setRunStatus(run.status);
-      } catch {}
+    // Parse route now creates the run and returns its id
+    if (result.run_id && !runId) {
+      setRunId(result.run_id);
+      setRunStatus('building');
     }
-  }, [runId, date]);
+  }, [runId]);
 
   const handleOptimise = useCallback(async () => {
     setOptimising(true);
