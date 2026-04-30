@@ -18,7 +18,7 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4" style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
+      <div className="mob-hide flex items-center gap-4" style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
         <span>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',

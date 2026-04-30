@@ -39,7 +39,7 @@ export default function Sidebar({ messages, selectedMsg, onSelectMsg, onParsed, 
   return (
     <aside style={{
       background: 'var(--blood)', borderRight: '1px solid var(--mid)',
-      width: '360px', flexShrink: 0, display: 'flex', flexDirection: 'column',
+      width: '100%', maxWidth: '360px', flexShrink: 0, display: 'flex', flexDirection: 'column',
       height: '100%', overflow: 'hidden',
     }}>
       <ParsePanel onParsed={onParsed} deliveryDate={deliveryDate} />

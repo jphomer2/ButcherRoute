@@ -34,78 +34,71 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
       {locked && (
         <div style={{
           background: 'rgba(100,116,139,0.06)', borderBottom: '1px solid rgba(100,116,139,0.2)',
-          padding: '0.5rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div style={{ fontFamily: 'DM Mono', fontSize: '0.68rem', color: 'var(--light-mid)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            This run is committed — stops are read-only
+            Committed — read-only
           </div>
-          <button
-            onClick={onUnlock}
-            style={{
-              background: 'none', border: '1px solid var(--mid)', borderRadius: '5px',
-              color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
-              padding: '2px 10px', cursor: 'pointer', letterSpacing: '0.5px',
-            }}
-          >
+          <button onClick={onUnlock} style={{
+            background: 'none', border: '1px solid var(--mid)', borderRadius: '5px',
+            color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
+            padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.5px',
+          }}>
             Unlock
           </button>
         </div>
       )}
 
       {/* Card header */}
-      <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid var(--mid)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+      <div className="route-card-header" style={{ padding: '1rem 1rem', borderBottom: '1px solid var(--mid)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
         <div>
-          <div style={{ fontFamily: 'DM Sans', fontSize: '1.5rem', letterSpacing: '2px', color: 'var(--cream)', lineHeight: 1 }}>
+          <div style={{ fontFamily: 'DM Sans', fontSize: '1.3rem', letterSpacing: '1px', color: 'var(--cream)', lineHeight: 1 }}>
             Delivery Run
           </div>
-          <div style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)', marginTop: '3px' }}>
+          <div style={{ fontFamily: 'DM Mono', fontSize: '0.68rem', color: 'var(--light-mid)', marginTop: '3px' }}>
             {dateLabel}
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="route-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{
-            fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '2px',
+            fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '2px',
             color: status.color, background: status.bg, border: `1px solid ${status.color}40`,
-            padding: '4px 12px', borderRadius: '20px',
+            padding: '4px 10px', borderRadius: '20px', whiteSpace: 'nowrap',
           }}>
             ● {status.label}
           </div>
 
           {mapsUrl && (
             <a href={mapsUrl} target="_blank" rel="noreferrer" style={{
-              padding: '0.45rem 1rem', background: 'var(--rust)', borderRadius: '6px',
-              color: 'white', fontFamily: 'DM Mono', fontSize: '0.72rem',
+              padding: '0.45rem 0.9rem', background: 'var(--rust)', borderRadius: '6px',
+              color: 'white', fontFamily: 'DM Mono', fontSize: '0.7rem',
               letterSpacing: '1px', textDecoration: 'none', whiteSpace: 'nowrap',
-              border: 'none',
             }}>
-              OPEN IN MAPS ↗
+              MAPS ↗
             </a>
           )}
 
           {onDispatch && stops.length > 0 && !locked && (
             <button onClick={onDispatch} style={{
-              padding: '0.45rem 1.1rem', background: 'var(--green-dark)', border: 'none',
+              padding: '0.45rem 1rem', background: 'var(--green-dark)', border: 'none',
               borderRadius: '6px', color: 'white', fontFamily: 'DM Mono',
-              fontSize: '0.72rem', letterSpacing: '1px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '6px',
+              fontSize: '0.7rem', letterSpacing: '1px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap',
             }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
               DISPATCH
             </button>
           )}
 
           {locked && (
-            <div style={{
-              fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--green)',
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              SENT TO DRIVER
+            <div style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--green)', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              SENT
             </div>
           )}
         </div>
@@ -115,7 +108,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
       <StatsBar stops={stops} totalMiles={runMiles} estMinutes={runMinutes} />
 
       {/* Stop list */}
-      <div style={{ padding: '1rem 1.5rem 1.5rem', maxHeight: 'calc(100vh - 380px)', overflowY: 'auto' }}>
+      <div style={{ padding: '0.75rem 1rem 1.25rem', overflowY: 'auto' }}>
         <div style={{ fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '3px', color: 'var(--light-mid)', marginBottom: '0.75rem' }}>
           ROUTE STOPS
         </div>

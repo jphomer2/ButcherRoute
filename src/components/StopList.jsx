@@ -132,10 +132,11 @@ function StopRow({ stop, index, onDelete, onUpdate, locked }) {
 
         {/* Action buttons — hidden when locked */}
         {!locked && (
-          <div style={{ display: 'flex', gap: '0.3rem', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
+          <div className="stop-actions" style={{ display: 'flex', gap: '0.3rem', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
             <button
               onClick={toggleTbc}
               title={stop.tbc ? 'Mark confirmed' : 'Mark TBC'}
+              className="stop-action-btn"
               style={{
                 background: stop.tbc ? 'rgba(220,38,38,0.08)' : 'var(--blood)',
                 border: `1px solid ${stop.tbc ? 'rgba(220,38,38,0.25)' : 'var(--mid)'}`,
@@ -148,6 +149,7 @@ function StopRow({ stop, index, onDelete, onUpdate, locked }) {
             <button
               onClick={handleDelete}
               title="Remove stop"
+              className="stop-action-btn"
               style={{
                 background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
                 borderRadius: '4px', color: '#DC2626', fontFamily: 'DM Mono',

@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import RouteCard from './components/RouteCard';
 import DateBar from './components/DateBar';
 import { api } from './api';
+import { useIsMobile } from './hooks/useIsMobile';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -18,6 +19,9 @@ export default function App() {
   const [runMinutes, setRunMinutes] = useState(null);
   const [optimising, setOptimising] = useState(false);
   const [error,      setError]      = useState(null);
+  const [mobileTab,  setMobileTab]  = useState('orders');
+
+  const isMobile = useIsMobile();
 
   // Load run + stops whenever date changes
   useEffect(() => {
@@ -43,7 +47,6 @@ export default function App() {
 
   const handleParsed = useCallback(async (result) => {
     if (!result.stops.length) {
-      // No new stops — but if the UI state is empty, load existing stops from DB
       if (result.run_id && !runId) {
         setRunId(result.run_id);
         try {
@@ -83,6 +86,9 @@ export default function App() {
       setRunId(result.run_id);
       setRunStatus('building');
     }
+
+    // Switch to Route tab on mobile so stops are visible immediately
+    setMobileTab('route');
   }, [runId, date]);
 
   const handleOptimise = useCallback(async () => {
@@ -91,7 +97,6 @@ export default function App() {
     try {
       const result = await api.optimise(date);
 
-      // Ensure we have a runId — fetch from API if not in state
       let currentRunId = runId;
       if (!currentRunId) {
         const runs = await api.getRuns(date);
@@ -159,10 +164,123 @@ export default function App() {
     }
   }, [runId]);
 
+  const errorBanner = error && (
+    <div style={{
+      background: 'rgba(220,38,38,0.06)', borderBottom: '1px solid rgba(220,38,38,0.2)',
+      padding: '0.5rem 1.5rem', fontFamily: 'DM Mono', fontSize: '0.75rem', color: '#DC2626',
+      display: 'flex', alignItems: 'center', gap: '1rem',
+    }}>
+      <span>✗ {error}</span>
+      <button onClick={() => setError(null)}
+        style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer' }}>✕</button>
+    </div>
+  );
+
+  const routeCard = (
+    <RouteCard
+      stops={stops}
+      runDate={date}
+      runStatus={runStatus}
+      runMiles={runMiles}
+      runMinutes={runMinutes}
+      onDispatch={handleDispatch}
+      onUnlock={handleUnlock}
+      onDeleteStop={handleDeleteStop}
+      onUpdateStop={handleUpdateStop}
+    />
+  );
+
+  const sidebar = (
+    <Sidebar
+      messages={messages}
+      selectedMsg={selectedMsg}
+      onSelectMsg={setSelectedMsg}
+      onParsed={handleParsed}
+      deliveryDate={date}
+    />
+  );
+
+  // ── Mobile layout ──
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        <Header />
+        <DateBar
+          date={date}
+          onChange={setDate}
+          onOptimise={handleOptimise}
+          onClear={handleClear}
+          optimising={optimising}
+          runStatus={runStatus}
+          stopCount={stops.length}
+        />
+        {errorBanner}
+
+        {/* Tab content */}
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {mobileTab === 'orders' ? (
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              {sidebar}
+            </div>
+          ) : (
+            <main style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+              {routeCard}
+            </main>
+          )}
+        </div>
+
+        {/* Bottom tab bar */}
+        <div style={{
+          display: 'flex', borderTop: '1px solid var(--mid)',
+          background: 'var(--charcoal)', flexShrink: 0,
+        }}>
+          <button
+            onClick={() => setMobileTab('orders')}
+            style={{
+              flex: 1, padding: '0.75rem 0', border: 'none', cursor: 'pointer',
+              background: mobileTab === 'orders' ? 'rgba(15,118,110,0.06)' : 'transparent',
+              borderTop: `2px solid ${mobileTab === 'orders' ? 'var(--rust)' : 'transparent'}`,
+              fontFamily: 'DM Mono', fontSize: '0.7rem', letterSpacing: '1px',
+              color: mobileTab === 'orders' ? 'var(--rust)' : 'var(--light-mid)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            ORDERS
+          </button>
+          <button
+            onClick={() => setMobileTab('route')}
+            style={{
+              flex: 1, padding: '0.75rem 0', border: 'none', cursor: 'pointer',
+              background: mobileTab === 'route' ? 'rgba(15,118,110,0.06)' : 'transparent',
+              borderTop: `2px solid ${mobileTab === 'route' ? 'var(--rust)' : 'transparent'}`,
+              fontFamily: 'DM Mono', fontSize: '0.7rem', letterSpacing: '1px',
+              color: mobileTab === 'route' ? 'var(--rust)' : 'var(--light-mid)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+              position: 'relative',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+            ROUTE
+            {stops.length > 0 && (
+              <span style={{
+                position: 'absolute', top: '6px', right: 'calc(50% - 18px)',
+                background: 'var(--rust)', color: 'white', borderRadius: '10px',
+                fontSize: '0.55rem', padding: '1px 5px', fontFamily: 'DM Mono',
+              }}>
+                {stops.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Desktop layout ──
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Header />
-
       <DateBar
         date={date}
         onChange={setDate}
@@ -172,39 +290,11 @@ export default function App() {
         runStatus={runStatus}
         stopCount={stops.length}
       />
-
-      {error && (
-        <div style={{
-          background: 'rgba(220,38,38,0.06)', borderBottom: '1px solid rgba(220,38,38,0.2)',
-          padding: '0.5rem 1.5rem', fontFamily: 'DM Mono', fontSize: '0.75rem', color: '#DC2626',
-          display: 'flex', alignItems: 'center', gap: '1rem',
-        }}>
-          <span>✗ {error}</span>
-          <button onClick={() => setError(null)}
-            style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer' }}>✕</button>
-        </div>
-      )}
-
+      {errorBanner}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar
-          messages={messages}
-          selectedMsg={selectedMsg}
-          onSelectMsg={setSelectedMsg}
-          onParsed={handleParsed}
-          deliveryDate={date}
-        />
+        {sidebar}
         <main style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
-          <RouteCard
-            stops={stops}
-            runDate={date}
-            runStatus={runStatus}
-            runMiles={runMiles}
-            runMinutes={runMinutes}
-            onDispatch={handleDispatch}
-            onUnlock={handleUnlock}
-            onDeleteStop={handleDeleteStop}
-            onUpdateStop={handleUpdateStop}
-          />
+          {routeCard}
         </main>
       </div>
     </div>

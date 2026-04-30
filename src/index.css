@@ -26,3 +26,29 @@ body {
 }
 
 #root { position: relative; z-index: 1; height: 100vh; overflow: hidden; }
+
+/* ── Mobile helpers ── */
+@media (max-width: 767px) {
+  .mob-hide   { display: none !important; }
+  .mob-stack  { flex-direction: column !important; align-items: flex-start !important; }
+  .mob-wrap   { flex-wrap: wrap !important; }
+
+  /* Stats bar: 2-column grid on mobile */
+  .stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Route card header stacks vertically */
+  .route-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.6rem !important; }
+  .route-card-actions { flex-wrap: wrap !important; gap: 0.4rem !important; width: 100% !important; }
+
+  /* Stop rows — bigger tap targets, always visible (no hover on touch) */
+  .stop-action-btn { min-height: 36px !important; padding: 4px 12px !important; }
+  .stop-actions    { opacity: 1 !important; }
+
+  /* DateBar wraps on mobile */
+  .datebar-inner { flex-wrap: wrap !important; gap: 0.4rem !important; }
+}
