@@ -5,15 +5,21 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
 
   async function handleParse() {
     if (!text.trim()) return;
     setLoading(true);
     setError(null);
+    setNotice(null);
     try {
       const result = await api.parseMessage({ message: text.trim(), delivery_date: deliveryDate });
-      onParsed(result);
-      setText('');
+      if (!result.stops.length) {
+        setNotice('All stops in this message are already in today\'s run.');
+      } else {
+        onParsed(result);
+        setText('');
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -29,7 +35,7 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
 
       <textarea
         value={text}
-        onChange={e => setText(e.target.value)}
+        onChange={e => { setText(e.target.value); setNotice(null); }}
         placeholder={"Morning all — orders for tomorrow:\nBlack Horse - 30 cases EARLY 06:00\nMagpie - 20 cases\nMilling Barn - tbc"}
         rows={5}
         style={{
@@ -46,6 +52,12 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
       {error && (
         <div style={{ color: '#DC2626', fontFamily: 'DM Mono', fontSize: '0.7rem', marginTop: '0.4rem' }}>
           ✗ {error}
+        </div>
+      )}
+
+      {notice && (
+        <div style={{ color: 'var(--amber)', fontFamily: 'DM Mono', fontSize: '0.7rem', marginTop: '0.4rem' }}>
+          ⚠ {notice}
         </div>
       )}
 

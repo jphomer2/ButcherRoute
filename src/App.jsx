@@ -42,6 +42,8 @@ export default function App() {
   }, [date]);
 
   const handleParsed = useCallback((result) => {
+    if (!result.stops.length) return;  // nothing new — leave all state untouched
+
     setStops(prev => {
       const existingIds = new Set(prev.map(s => s.id));
       return [...prev, ...result.stops.filter(s => !existingIds.has(s.id))];
@@ -51,14 +53,13 @@ export default function App() {
       if (prev.find(m => m.id === result.message_id)) return prev;
       return [{
         id: result.message_id,
-        body: `${result.stops.length} stops parsed`,
+        body: `${result.stops.length} stop${result.stops.length !== 1 ? 's' : ''} parsed`,
         status: 'parsed',
         received_at: new Date().toISOString(),
         from_number: 'WhatsApp',
       }, ...prev];
     });
 
-    // Parse route now creates the run and returns its id
     if (result.run_id && !runId) {
       setRunId(result.run_id);
       setRunStatus('building');
