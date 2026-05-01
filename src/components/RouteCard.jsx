@@ -18,8 +18,8 @@ const STATUS = {
   dispatched: { label: 'DISPATCHED', color: 'var(--light-mid)', bg: 'rgba(100,116,139,0.08)' },
 };
 
-export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, onDispatch, onUnlock, onDeleteStop, onUpdateStop }) {
-  const mapsUrl = buildMapsUrl(stops, DEPOT);
+export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, runMapsUrl, onDispatch, onUnlock, onDeleteStop, onUpdateStop }) {
+  const mapsUrl = runMapsUrl || buildMapsUrl(stops, DEPOT);
   const status  = STATUS[runStatus] || STATUS.building;
   const locked  = runStatus === 'dispatched';
 

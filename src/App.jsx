@@ -21,6 +21,7 @@ export default function App() {
   const [runId,      setRunId]      = useState(null);
   const [runMiles,   setRunMiles]   = useState(null);
   const [runMinutes, setRunMinutes] = useState(null);
+  const [runMapsUrl, setRunMapsUrl] = useState(null);
   const [optimising, setOptimising] = useState(false);
   const [error,      setError]      = useState(null);
   const [mobileTab,    setMobileTab]    = useState('orders');
@@ -43,6 +44,7 @@ export default function App() {
     setRunStatus('building');
     setRunMiles(null);
     setRunMinutes(null);
+    setRunMapsUrl(null);
     api.getRuns(date)
       .then(runs => {
         if (runs?.length) {
@@ -51,6 +53,7 @@ export default function App() {
           setRunStatus(run.status);
           setRunMiles(run.total_miles);
           setRunMinutes(run.est_drive_minutes);
+          setRunMapsUrl(run.route_url || null);
           return api.getStops(run.id);
         }
       })
@@ -123,16 +126,13 @@ export default function App() {
 
       if (currentRunId) {
         const updated = await api.getStops(currentRunId);
-        const updatedById = new Map(updated.map(s => [s.id, s]));
-        setStops(prev => prev
-          .filter(s => updatedById.has(s.id))
-          .map(s => ({ ...s, route_sequence: updatedById.get(s.id).route_sequence }))
-        );
+        setStops(updated);
         await api.updateRun(currentRunId, { route_url: result.maps_url, status: 'ready' });
       }
 
       setRunMiles(result.total_miles);
       setRunMinutes(result.est_drive_minutes);
+      setRunMapsUrl(result.maps_url || null);
       setRunStatus('ready');
     } catch (e) {
       setError(e.message);
@@ -167,6 +167,7 @@ export default function App() {
     setRunStatus('building');
     setRunMiles(null);
     setRunMinutes(null);
+    setRunMapsUrl(null);
     setError(null);
     setPanelResetKey(k => k + 1);
   }, [date]);
@@ -212,6 +213,7 @@ export default function App() {
       runStatus={runStatus}
       runMiles={runMiles}
       runMinutes={runMinutes}
+      runMapsUrl={runMapsUrl}
       onDispatch={handleDispatch}
       onUnlock={handleUnlock}
       onDeleteStop={handleDeleteStop}
