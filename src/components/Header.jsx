@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase';
+
 export default function Header({ onDriversOpen }) {
   return (
     <header style={{ background: 'var(--charcoal)', borderBottom: '1px solid var(--mid)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
@@ -34,6 +36,7 @@ export default function Header({ onDriversOpen }) {
         </button>
 
         <span className="mob-hide">{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+
         <div className="mob-hide" style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.25)',
@@ -42,6 +45,20 @@ export default function Header({ onDriversOpen }) {
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
           LIVE
         </div>
+
+        <button
+          onClick={() => supabase.auth.signOut()}
+          style={{
+            background: 'transparent', border: '1px solid var(--mid)', borderRadius: '6px',
+            color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
+            letterSpacing: '1px', padding: '5px 12px', cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.target.style.borderColor = 'rgba(220,38,38,0.5)'; e.target.style.color = '#DC2626'; }}
+          onMouseLeave={e => { e.target.style.borderColor = 'var(--mid)'; e.target.style.color = 'var(--light-mid)'; }}
+        >
+          SIGN OUT
+        </button>
       </div>
     </header>
   );
