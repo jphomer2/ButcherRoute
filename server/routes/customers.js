@@ -3,10 +3,25 @@ import { supabase } from '../lib/supabase.js';
 
 const router = Router();
 
+async function geocode(address, postcode) {
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  if (!key) return null;
+  const query = encodeURIComponent(`${address || ''} ${postcode || ''} UK`.trim());
+  try {
+    const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${key}`);
+    const json = await r.json();
+    if (json.status === 'OK' && json.results[0]) {
+      const { lat, lng } = json.results[0].geometry.location;
+      return { lat, lng };
+    }
+  } catch {}
+  return null;
+}
+
 router.get('/', async (_req, res) => {
   const { data, error } = await supabase
     .from('customers')
-    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng')
+    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone')
     .eq('active', true)
     .order('name');
 
@@ -44,9 +59,21 @@ router.post('/', async (req, res) => {
   const { name, contact_name, phone, address, postcode, delivery_notes } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
 
+  const coords = (address || postcode) ? await geocode(address, postcode) : null;
+
   const { data, error } = await supabase
     .from('customers')
-    .insert({ name: name.trim(), contact_name: contact_name || null, phone: phone || null, address: address || null, postcode: postcode || null, delivery_notes: delivery_notes || null, active: true })
+    .insert({
+      name: name.trim(),
+      contact_name: contact_name || null,
+      phone: phone || null,
+      address: address || null,
+      postcode: postcode || null,
+      delivery_notes: delivery_notes || null,
+      lat: coords?.lat || null,
+      lng: coords?.lng || null,
+      active: true,
+    })
     .select()
     .single();
 
@@ -55,9 +82,22 @@ router.post('/', async (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
+  const patch = { ...req.body };
+
+  // Re-geocode if address or postcode changed
+  if (patch.address !== undefined || patch.postcode !== undefined) {
+    if (!patch.lat && !patch.lng) {
+      const existing = await supabase.from('customers').select('address, postcode').eq('id', req.params.id).single();
+      const addr = patch.address ?? existing.data?.address;
+      const pc   = patch.postcode ?? existing.data?.postcode;
+      const coords = await geocode(addr, pc);
+      if (coords) { patch.lat = coords.lat; patch.lng = coords.lng; }
+    }
+  }
+
   const { data, error } = await supabase
     .from('customers')
-    .update(req.body)
+    .update(patch)
     .eq('id', req.params.id)
     .select()
     .single();
