@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import ParsePanel from './ParsePanel';
+import CustomersPanel from './CustomersPanel';
 
 function MessageCard({ msg, selected, onClick }) {
   const parsed = msg.status === 'parsed';
@@ -35,33 +37,57 @@ function MessageCard({ msg, selected, onClick }) {
   );
 }
 
-export default function Sidebar({ messages, selectedMsg, onSelectMsg, onParsed, deliveryDate }) {
+const TAB_BTN = (active) => ({
+  flex: 1, padding: '0.55rem 0', border: 'none', cursor: 'pointer', background: 'transparent',
+  borderBottom: `2px solid ${active ? 'var(--rust)' : 'transparent'}`,
+  fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '1.5px',
+  color: active ? 'var(--rust)' : 'var(--light-mid)',
+  transition: 'all 0.15s',
+});
+
+export default function Sidebar({ messages, selectedMsg, onSelectMsg, onParsed, deliveryDate, panelResetKey }) {
+  const [tab, setTab] = useState('orders');
+
   return (
     <aside style={{
       background: 'var(--blood)', borderRight: '1px solid var(--mid)',
       width: '100%', maxWidth: '360px', flexShrink: 0, display: 'flex', flexDirection: 'column',
       height: '100%', overflow: 'hidden',
     }}>
-      <ParsePanel onParsed={onParsed} deliveryDate={deliveryDate} />
-
-      <div style={{ padding: '0.9rem 1rem 0.5rem', borderBottom: '1px solid var(--mid)' }}>
-        <div style={{ fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '2px', color: 'var(--light-mid)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>WHATSAPP INBOX</span>
-          <span style={{ background: '#25D366', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.58rem' }}>WA</span>
-        </div>
+      {/* Tab bar */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--mid)', background: 'var(--charcoal)', flexShrink: 0 }}>
+        <button style={TAB_BTN(tab === 'orders')}    onClick={() => setTab('orders')}>ORDERS</button>
+        <button style={TAB_BTN(tab === 'customers')} onClick={() => setTab('customers')}>CUSTOMERS</button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0.75rem 1rem' }}>
-        {messages.length === 0 ? (
-          <div style={{ color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.72rem', textAlign: 'center', marginTop: '2rem', lineHeight: 1.8 }}>
-            No messages yet.<br />Paste orders above to get started.
+      {tab === 'orders' ? (
+        <>
+          <ParsePanel key={panelResetKey} onParsed={onParsed} deliveryDate={deliveryDate} />
+
+          <div style={{ padding: '0.9rem 1rem 0.5rem', borderBottom: '1px solid var(--mid)', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '2px', color: 'var(--light-mid)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>WHATSAPP INBOX</span>
+              <span style={{ background: '#25D366', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.58rem' }}>WA</span>
+            </div>
           </div>
-        ) : (
-          messages.map(msg => (
-            <MessageCard key={msg.id} msg={msg} selected={selectedMsg?.id === msg.id} onClick={() => onSelectMsg(msg)} />
-          ))
-        )}
-      </div>
+
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0.75rem 1rem' }}>
+            {messages.length === 0 ? (
+              <div style={{ color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.72rem', textAlign: 'center', marginTop: '2rem', lineHeight: 1.8 }}>
+                No messages yet.<br />Paste orders above to get started.
+              </div>
+            ) : (
+              messages.map(msg => (
+                <MessageCard key={msg.id} msg={msg} selected={selectedMsg?.id === msg.id} onClick={() => onSelectMsg(msg)} />
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <CustomersPanel />
+        </div>
+      )}
     </aside>
   );
 }

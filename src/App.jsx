@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import RouteCard from './components/RouteCard';
 import DateBar from './components/DateBar';
+import DriversModal from './components/DriversModal';
 import { api } from './api';
 import { useIsMobile } from './hooks/useIsMobile';
 
@@ -19,7 +20,9 @@ export default function App() {
   const [runMinutes, setRunMinutes] = useState(null);
   const [optimising, setOptimising] = useState(false);
   const [error,      setError]      = useState(null);
-  const [mobileTab,  setMobileTab]  = useState('orders');
+  const [mobileTab,    setMobileTab]    = useState('orders');
+  const [panelResetKey, setPanelResetKey] = useState(0);
+  const [driversOpen,   setDriversOpen]   = useState(false);
 
   const isMobile = useIsMobile();
 
@@ -47,14 +50,11 @@ export default function App() {
 
   const handleParsed = useCallback(async (result) => {
     if (!result.stops.length) {
+      // All stops already existed for this date — just sync run metadata if runId was unknown
       if (result.run_id && !runId) {
         setRunId(result.run_id);
         try {
-          const [s, runs] = await Promise.all([
-            api.getStops(result.run_id),
-            api.getRuns(date),
-          ]);
-          if (s?.length) setStops(s);
+          const runs = await api.getRuns(date);
           if (runs?.length) {
             const run = runs[0];
             setRunStatus(run.status);
@@ -70,6 +70,11 @@ export default function App() {
       const existingIds = new Set(prev.map(s => s.id));
       return [...prev, ...result.stops.filter(s => !existingIds.has(s.id))];
     });
+
+    if (runStatus === 'ready' && runId) {
+      setRunStatus('building');
+      api.updateRun(runId, { status: 'building' }).catch(() => {});
+    }
 
     setMessages(prev => {
       if (prev.find(m => m.id === result.message_id)) return prev;
@@ -89,7 +94,7 @@ export default function App() {
 
     // Switch to Route tab on mobile so stops are visible immediately
     setMobileTab('route');
-  }, [runId, date]);
+  }, [runId, runStatus, date]);
 
   const handleOptimise = useCallback(async () => {
     setOptimising(true);
@@ -108,7 +113,11 @@ export default function App() {
 
       if (currentRunId) {
         const updated = await api.getStops(currentRunId);
-        setStops(updated);
+        const updatedById = new Map(updated.map(s => [s.id, s]));
+        setStops(prev => prev
+          .filter(s => updatedById.has(s.id))
+          .map(s => ({ ...s, route_sequence: updatedById.get(s.id).route_sequence }))
+        );
         await api.updateRun(currentRunId, { route_url: result.maps_url, status: 'ready' });
       }
 
@@ -124,7 +133,11 @@ export default function App() {
 
   const handleDeleteStop = useCallback((id) => {
     setStops(prev => prev.filter(s => s.id !== id));
-  }, []);
+    if (runStatus === 'ready' && runId) {
+      setRunStatus('building');
+      api.updateRun(runId, { status: 'building' }).catch(() => {});
+    }
+  }, [runStatus, runId]);
 
   const handleUpdateStop = useCallback((updated) => {
     setStops(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
@@ -145,6 +158,7 @@ export default function App() {
     setRunMiles(null);
     setRunMinutes(null);
     setError(null);
+    setPanelResetKey(k => k + 1);
   }, [date]);
 
   const handleDispatch = useCallback(async () => {
@@ -202,6 +216,7 @@ export default function App() {
       onSelectMsg={setSelectedMsg}
       onParsed={handleParsed}
       deliveryDate={date}
+      panelResetKey={panelResetKey}
     />
   );
 
@@ -209,7 +224,8 @@ export default function App() {
   if (isMobile) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-        <Header />
+        <DriversModal open={driversOpen} onClose={() => setDriversOpen(false)} />
+        <Header onDriversOpen={() => setDriversOpen(true)} />
         <DateBar
           date={date}
           onChange={setDate}
@@ -285,7 +301,8 @@ export default function App() {
   // ── Desktop layout ──
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Header />
+      <DriversModal open={driversOpen} onClose={() => setDriversOpen(false)} />
+      <Header onDriversOpen={() => setDriversOpen(true)} />
       <DateBar
         date={date}
         onChange={setDate}

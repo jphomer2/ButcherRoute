@@ -51,8 +51,12 @@ function StopRow({ stop, index, onDelete, onUpdate, locked }) {
 
   async function handleDelete() {
     if (!window.confirm(`Remove ${stop.customers?.name || stop.customer_name_raw}?`)) return;
-    await api.deleteStop(stop.id);
-    onDelete(stop.id);
+    try {
+      await api.deleteStop(stop.id);
+      onDelete(stop.id);
+    } catch (e) {
+      alert('Failed to remove stop: ' + e.message);
+    }
   }
 
   return (

@@ -46,7 +46,7 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
         </button>
       )}
 
-      {stopCount > 0 && runStatus !== 'dispatched' && (
+      {stopCount > 0 && runStatus === 'building' && (
         <button onClick={onOptimise} disabled={optimising} style={{
           padding: '0.38rem 1rem', borderRadius: '6px', border: 'none',
           cursor: optimising ? 'not-allowed' : 'pointer',

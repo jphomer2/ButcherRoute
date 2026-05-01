@@ -1,4 +1,4 @@
-export default function Header() {
+export default function Header({ onDriversOpen }) {
   return (
     <header style={{ background: 'var(--charcoal)', borderBottom: '1px solid var(--mid)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
       className="px-6 flex items-center justify-between h-14 sticky top-0 z-50">
@@ -18,9 +18,23 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="mob-hide flex items-center gap-4" style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
-        <span>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
-        <div style={{
+      <div className="flex items-center gap-3" style={{ fontFamily: 'DM Mono', fontSize: '0.7rem', color: 'var(--light-mid)' }}>
+        <button
+          onClick={onDriversOpen}
+          style={{
+            background: 'transparent', border: '1px solid var(--mid)', borderRadius: '6px',
+            color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
+            letterSpacing: '1px', padding: '5px 12px', cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.target.style.borderColor = 'var(--rust)'; e.target.style.color = 'var(--cream)'; }}
+          onMouseLeave={e => { e.target.style.borderColor = 'var(--mid)'; e.target.style.color = 'var(--light-mid)'; }}
+        >
+          DRIVERS
+        </button>
+
+        <span className="mob-hide">{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        <div className="mob-hide" style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.25)',
           color: 'var(--green)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.62rem', letterSpacing: '1px',
