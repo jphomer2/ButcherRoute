@@ -153,7 +153,7 @@ router.post('/message', async (req, res) => {
     const { data: insertedStops, error: stopsErr } = await supabase
       .from('delivery_stops')
       .insert(stops)
-      .select();
+      .select('*, customers(name, address, postcode, lat, lng)');
 
     if (stopsErr) return res.status(500).json({ error: stopsErr.message });
 

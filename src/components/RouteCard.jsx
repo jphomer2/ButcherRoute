@@ -73,7 +73,7 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
             ● {status.label}
           </div>
 
-          {mapsUrl && (
+          {mapsUrl ? (
             <a href={mapsUrl} target="_blank" rel="noreferrer" style={{
               padding: '0.45rem 0.9rem', background: 'var(--rust)', borderRadius: '6px',
               color: 'white', fontFamily: 'DM Mono', fontSize: '0.7rem',
@@ -81,6 +81,13 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
             }}>
               MAPS ↗
             </a>
+          ) : stops.length > 0 && !locked && (
+            <span style={{
+              fontFamily: 'DM Mono', fontSize: '0.62rem', color: 'var(--light-mid)',
+              whiteSpace: 'nowrap',
+            }}>
+              Optimise to get map
+            </span>
           )}
 
           {onDispatch && stops.length > 0 && !locked && (
