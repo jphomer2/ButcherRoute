@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const inputStyle = {
   width: '100%', background: 'var(--blood)', border: '1px solid var(--mid)',
@@ -12,6 +13,7 @@ const labelStyle = {
 };
 
 function DriverDrawer({ driver, onClose, onSaved }) {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState({
     name:            driver?.name            || '',
     phone:           driver?.phone           || '',
@@ -43,15 +45,24 @@ function DriverDrawer({ driver, onClose, onSaved }) {
     }
   }
 
+  const drawerStyle = isMobile ? {
+    position: 'fixed', left: 0, right: 0, bottom: 0,
+    background: 'var(--charcoal)', borderTop: '1px solid var(--mid)',
+    borderRadius: '16px 16px 0 0',
+    zIndex: 311, display: 'flex', flexDirection: 'column',
+    maxHeight: '90vh',
+    boxShadow: '0 -4px 20px rgba(0,0,0,0.3)',
+  } : {
+    position: 'fixed', top: 0, right: 0, bottom: 0, width: '320px',
+    background: 'var(--charcoal)', borderLeft: '1px solid var(--mid)',
+    zIndex: 311, display: 'flex', flexDirection: 'column',
+    boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
+  };
+
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 310 }} />
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: '320px',
-        background: 'var(--charcoal)', borderLeft: '1px solid var(--mid)',
-        zIndex: 311, display: 'flex', flexDirection: 'column',
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
-      }}>
+      <div style={drawerStyle}>
         <div style={{ padding: '1rem', borderBottom: '1px solid var(--mid)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: 'DM Mono', fontSize: '0.68rem', letterSpacing: '2px', color: 'var(--light-mid)' }}>
             {driver?.id ? 'EDIT DRIVER' : 'ADD DRIVER'}
@@ -59,7 +70,7 @@ function DriverDrawer({ driver, onClose, onSaved }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--light-mid)', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {[
             { k: 'name',            label: 'FULL NAME *' },
             { k: 'phone',           label: 'PHONE' },
@@ -68,18 +79,21 @@ function DriverDrawer({ driver, onClose, onSaved }) {
           ].map(({ k, label }) => (
             <div key={k}>
               <label style={labelStyle}>{label}</label>
-              <input value={form[k]} onChange={e => update(k, e.target.value)} style={inputStyle} />
+              <input
+                value={form[k]}
+                onChange={e => update(k, e.target.value)}
+                style={{ ...inputStyle, fontSize: '1rem' }}
+              />
             </div>
           ))}
           {error && <div style={{ color: '#DC2626', fontFamily: 'DM Mono', fontSize: '0.7rem' }}>✗ {error}</div>}
-        </div>
 
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--mid)' }}>
           <button onClick={save} disabled={saving} style={{
-            width: '100%', padding: '0.65rem', border: 'none', borderRadius: '8px',
+            width: '100%', padding: '0.75rem', border: 'none', borderRadius: '8px',
             background: saving ? '#94A3B8' : 'var(--rust)', color: 'white',
-            fontFamily: 'DM Sans', fontWeight: 600, fontSize: '0.82rem',
+            fontFamily: 'DM Sans', fontWeight: 600, fontSize: '0.9rem',
             cursor: saving ? 'not-allowed' : 'pointer',
+            marginTop: '0.25rem', marginBottom: isMobile ? '0.5rem' : 0,
           }}>
             {saving ? 'Saving…' : driver?.id ? 'Save Changes' : 'Add Driver'}
           </button>
@@ -90,6 +104,7 @@ function DriverDrawer({ driver, onClose, onSaved }) {
 }
 
 function DriverRow({ driver, onEdit, onRemove }) {
+  const isMobile = useIsMobile();
   const [hovered, setHovered] = useState(false);
   const initials = driver.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return (
@@ -117,14 +132,14 @@ function DriverRow({ driver, onEdit, onRemove }) {
           {[driver.vehicle_reg || driver.van_plate, driver.phone].filter(Boolean).join(' · ') || '—'}
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '0.3rem', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '0.3rem', opacity: isMobile || hovered ? 1 : 0, transition: 'opacity 0.15s', flexShrink: 0 }}>
         <button onClick={() => onEdit(driver)} title="Edit" style={{
           background: 'var(--blood)', border: '1px solid var(--mid)', borderRadius: '4px',
-          color: 'var(--light-mid)', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem',
+          color: 'var(--light-mid)', padding: isMobile ? '6px 10px' : '3px 8px', cursor: 'pointer', fontSize: '0.75rem',
         }}>✎</button>
         <button onClick={() => onRemove(driver)} title="Remove" style={{
           background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
-          borderRadius: '4px', color: '#DC2626', padding: '3px 7px', cursor: 'pointer', fontSize: '0.7rem',
+          borderRadius: '4px', color: '#DC2626', padding: isMobile ? '6px 9px' : '3px 7px', cursor: 'pointer', fontSize: '0.7rem',
         }}>✕</button>
       </div>
     </div>
