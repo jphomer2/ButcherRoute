@@ -232,7 +232,7 @@ export default function App() {
   // ── Mobile layout ──
   if (isMobile) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <div className="app-layout" style={{ display: 'flex', flexDirection: 'column' }}>
         <DriversModal open={driversOpen} onClose={() => setDriversOpen(false)} />
         <Header onDriversOpen={() => setDriversOpen(true)} />
         <DateBar
@@ -309,7 +309,7 @@ export default function App() {
 
   // ── Desktop layout ──
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div className="app-layout" style={{ display: 'flex', flexDirection: 'column' }}>
       <DriversModal open={driversOpen} onClose={() => setDriversOpen(false)} />
       <Header onDriversOpen={() => setDriversOpen(true)} />
       <DateBar

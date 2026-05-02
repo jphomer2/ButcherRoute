@@ -5,20 +5,30 @@ import { useSession } from '../contexts/AuthContext';
 import LoginScreen from '../components/LoginScreen';
 
 function StatCard({ label, value, sub, accent }) {
+  const color = accent || 'var(--rust)';
   return (
     <div style={{
-      background: 'var(--charcoal)', border: '1px solid var(--mid)',
-      borderRadius: '10px', padding: '1.25rem 1.5rem',
-      borderLeft: `3px solid ${accent || 'var(--rust)'}`,
+      background: 'var(--charcoal)',
+      border: '1px solid var(--mid)',
+      borderRadius: '12px',
+      padding: '1.4rem 1.5rem',
+      borderLeft: `4px solid ${color}`,
+      boxShadow: `0 0 0 0 ${color}, inset 2px 0 12px ${color}18`,
+      position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ fontFamily: 'DM Mono', fontSize: '0.58rem', letterSpacing: '2px', color: 'var(--light-mid)', marginBottom: '0.5rem' }}>
+      <div style={{
+        position: 'absolute', top: '1.1rem', right: '1.1rem',
+        width: '8px', height: '8px', borderRadius: '50%',
+        background: color, opacity: 0.5,
+      }} />
+      <div style={{ fontFamily: 'DM Mono', fontSize: '0.57rem', letterSpacing: '2px', color: 'var(--light-mid)', marginBottom: '0.65rem' }}>
         {label}
       </div>
-      <div style={{ fontFamily: 'DM Sans', fontWeight: 700, fontSize: '1.9rem', color: 'var(--cream)', lineHeight: 1 }}>
+      <div style={{ fontFamily: 'DM Sans', fontWeight: 800, fontSize: '2.1rem', color: 'var(--cream)', lineHeight: 1, letterSpacing: '-0.5px' }}>
         {value ?? '—'}
       </div>
       {sub && (
-        <div style={{ fontFamily: 'DM Mono', fontSize: '0.62rem', color: 'var(--light-mid)', marginTop: '4px' }}>
+        <div style={{ fontFamily: 'DM Mono', fontSize: '0.61rem', color: 'var(--light-mid)', marginTop: '6px' }}>
           {sub}
         </div>
       )}

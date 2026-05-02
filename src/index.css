@@ -25,7 +25,8 @@ body {
   min-height: 100vh;
 }
 
-#root { position: relative; z-index: 1; height: 100vh; overflow: hidden; }
+#root { position: relative; z-index: 1; }
+.app-layout { height: 100vh; overflow: hidden; }
 
 /* ── Mobile helpers ── */
 @media (max-width: 767px) {
