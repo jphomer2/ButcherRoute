@@ -206,7 +206,7 @@ function DemoForm() {
               </label>
               <input
                 required value={form.name} onChange={set('name')}
-                placeholder="James Burden"
+                placeholder="John Smith"
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = T.teal}
                 onBlur={e => e.target.style.borderColor = T.border}
@@ -218,7 +218,7 @@ function DemoForm() {
               </label>
               <input
                 required value={form.depot_name} onChange={set('depot_name')}
-                placeholder="Suffolk Farms Ltd"
+                placeholder="ButcherRoutes Ltd"
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = T.teal}
                 onBlur={e => e.target.style.borderColor = T.border}
