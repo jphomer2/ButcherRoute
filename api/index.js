@@ -45,6 +45,10 @@ app.use(async (req, res, next) => {
   next();
 });
 
+app.get('/api/debug', (req, res) => {
+  res.json({ userId: req.userId, email: req.userEmail, companyId: req.companyId, v: 2 });
+});
+
 app.use('/api/parse', parseRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/drivers', driversRoutes);
