@@ -6,13 +6,13 @@ import DateBar from './components/DateBar';
 import DriversModal from './components/DriversModal';
 import LoginScreen from './components/LoginScreen';
 import { api } from './api';
-import { supabase } from './lib/supabase';
+import { useSession } from './contexts/AuthContext';
 import { useIsMobile } from './hooks/useIsMobile';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
 export default function App() {
-  const [session,    setSession]    = useState(undefined); // undefined = still loading
+  const session = useSession();
   const [date,       setDate]       = useState(TODAY);
   const [stops,      setStops]      = useState([]);
   const [messages,   setMessages]   = useState([]);
@@ -29,13 +29,6 @@ export default function App() {
   const [driversOpen,   setDriversOpen]   = useState(false);
 
   const isMobile = useIsMobile();
-
-  // Auth session
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session));
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Load run + stops whenever date changes
   useEffect(() => {

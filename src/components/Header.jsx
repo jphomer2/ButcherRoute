@@ -1,6 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function Header({ onDriversOpen }) {
+  const navigate = useNavigate();
+
   return (
     <header style={{ background: 'var(--charcoal)', borderBottom: '1px solid var(--mid)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
       className="px-6 flex items-center justify-between h-14 sticky top-0 z-50">
@@ -17,6 +20,24 @@ export default function Header({ onDriversOpen }) {
           <div style={{ fontFamily: 'DM Mono', fontSize: '0.52rem', color: 'var(--light-mid)', letterSpacing: '1.5px', marginTop: '2px' }}>
             SUFFOLK FARMS · DISPATCH
           </div>
+        </div>
+
+        {/* Nav tabs */}
+        <div className="mob-hide" style={{ display: 'flex', gap: '0.25rem', marginLeft: '1rem' }}>
+          {[
+            { label: 'DISPATCH',  path: '/app' },
+            { label: 'ANALYTICS', path: '/app/analytics' },
+          ].map(({ label, path }) => (
+            <button key={path} onClick={() => navigate(path)} style={{
+              background: window.location.pathname === path ? 'rgba(194,81,42,0.1)' : 'transparent',
+              border: 'none', borderRadius: '6px',
+              color: window.location.pathname === path ? 'var(--rust)' : 'var(--light-mid)',
+              fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '1.5px',
+              padding: '6px 12px', cursor: 'pointer',
+            }}>
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
