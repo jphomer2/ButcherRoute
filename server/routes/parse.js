@@ -96,12 +96,14 @@ router.post('/message', async (req, res) => {
     const { data: customers } = await supabase
       .from('customers')
       .select('id, name, name_aliases, postcode, lat, lng, delivery_notes')
-      .eq('active', true);
+      .eq('active', true)
+      .eq('company_id', req.companyId);
 
     const { data: activeRun } = await supabase
       .from('runs')
       .select('id')
       .eq('delivery_date', date)
+      .eq('company_id', req.companyId)
       .maybeSingle();
 
     let existingNames = new Set();
@@ -111,34 +113,16 @@ router.post('/message', async (req, res) => {
       const { data: existingStops } = await supabase
         .from('delivery_stops')
         .select('customer_name_raw')
-        .eq('delivery_date', date);
+        .eq('run_id', activeRun.id);
       existingNames = new Set((existingStops || []).map(s => normalise(s.customer_name_raw)));
       existingStopCount = existingStops?.length || 0;
     }
 
-    const stops = parsed.stops
+    const parsedStops = parsed.stops
       .filter(stop => nameAppearsInMessage(stop.customer_name_raw, message))
-      .filter(stop => !existingNames.has(normalise(stop.customer_name_raw)))
-      .map((stop, idx) => {
-        const { customer, confidence } = matchCustomer(stop.customer_name_raw, customers);
-        return {
-          message_id: msgRow.id,
-          customer_id: customer?.id || null,
-          delivery_date: date,
-          customer_name_raw: stop.customer_name_raw,
-          quantity: stop.quantity,
-          unit: stop.unit || 'cases',
-          early: stop.early || false,
-          early_time: stop.early_time || null,
-          tbc: stop.tbc || false,
-          notes: stop.notes || customer?.delivery_notes || null,
-          matched: !!customer,
-          match_confidence: confidence,
-          route_sequence: existingStopCount + idx + 1,
-        };
-      });
+      .filter(stop => !existingNames.has(normalise(stop.customer_name_raw)));
 
-    if (!stops.length) {
+    if (!parsedStops.length) {
       await supabase.from('whatsapp_messages').update({ status: 'parsed' }).eq('id', msgRow.id);
       return res.json({
         message_id: msgRow.id,
@@ -150,6 +134,37 @@ router.post('/message', async (req, res) => {
       });
     }
 
+    // Ensure run exists before inserting stops (run_id is required)
+    let runId = activeRun?.id || null;
+    if (!runId) {
+      const { data: newRun } = await supabase
+        .from('runs')
+        .insert({ delivery_date: date, status: 'building', company_id: req.companyId })
+        .select('id')
+        .single();
+      runId = newRun?.id || null;
+    }
+
+    const stops = parsedStops.map((stop, idx) => {
+      const { customer, confidence } = matchCustomer(stop.customer_name_raw, customers);
+      return {
+        run_id: runId,
+        message_id: msgRow.id,
+        customer_id: customer?.id || null,
+        delivery_date: date,
+        customer_name_raw: stop.customer_name_raw,
+        quantity: stop.quantity,
+        unit: stop.unit || 'cases',
+        early: stop.early || false,
+        early_time: stop.early_time || null,
+        tbc: stop.tbc || false,
+        notes: stop.notes || customer?.delivery_notes || null,
+        matched: !!customer,
+        match_confidence: confidence,
+        route_sequence: existingStopCount + idx + 1,
+      };
+    });
+
     const { data: insertedStops, error: stopsErr } = await supabase
       .from('delivery_stops')
       .insert(stops)
@@ -158,16 +173,6 @@ router.post('/message', async (req, res) => {
     if (stopsErr) return res.status(500).json({ error: stopsErr.message });
 
     await supabase.from('whatsapp_messages').update({ status: 'parsed' }).eq('id', msgRow.id);
-
-    let runId = activeRun?.id || null;
-    if (!runId) {
-      const { data: newRun } = await supabase
-        .from('runs')
-        .insert({ delivery_date: date, status: 'building' })
-        .select('id')
-        .single();
-      runId = newRun?.id || null;
-    }
 
     res.json({
       message_id: msgRow.id,

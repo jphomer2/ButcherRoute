@@ -28,6 +28,25 @@ app.use(async (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
   const { data: { user }, error } = await authClient.auth.getUser(token);
   if (error || !user) return res.status(401).json({ error: 'Invalid session' });
+
+  // Look up this user's company using their JWT for RLS
+  const userScopedClient = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
+  );
+  const { data: userRow } = await userScopedClient
+    .from('users')
+    .select('company_id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const SUFFOLK_COMPANY = 'c87aa0fc-b567-49ef-89bb-2f4030ab6c14';
+  const DEMO_COMPANY    = 'd0000000-0000-0000-0000-000000000001';
+  req.userId    = user.id;
+  req.userEmail = user.email;
+  req.companyId = userRow?.company_id ??
+    (user.email === 'demo@butcherroute.com' ? DEMO_COMPANY : SUFFOLK_COMPANY);
   next();
 });
 

@@ -18,11 +18,12 @@ async function geocode(address, postcode) {
   return null;
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('customers')
     .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone')
     .eq('active', true)
+    .eq('company_id', req.companyId)
     .order('name');
 
   if (error) return res.status(500).json({ error: error.message });
@@ -37,6 +38,7 @@ router.get('/search', async (req, res) => {
     .from('customers')
     .select('id, name, postcode, delivery_notes, lat, lng')
     .eq('active', true)
+    .eq('company_id', req.companyId)
     .ilike('name', `%${q}%`)
     .limit(10);
 
@@ -49,6 +51,7 @@ router.get('/:id', async (req, res) => {
     .from('customers')
     .select('*')
     .eq('id', req.params.id)
+    .eq('company_id', req.companyId)
     .single();
 
   if (error) return res.status(404).json({ error: 'Not found' });
@@ -73,6 +76,7 @@ router.post('/', async (req, res) => {
       lat: coords?.lat || null,
       lng: coords?.lng || null,
       active: true,
+      company_id: req.companyId,
     })
     .select()
     .single();
@@ -84,10 +88,9 @@ router.post('/', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   const patch = { ...req.body };
 
-  // Re-geocode if address or postcode changed
   if (patch.address !== undefined || patch.postcode !== undefined) {
     if (!patch.lat && !patch.lng) {
-      const existing = await supabase.from('customers').select('address, postcode').eq('id', req.params.id).single();
+      const existing = await supabase.from('customers').select('address, postcode').eq('id', req.params.id).eq('company_id', req.companyId).single();
       const addr = patch.address ?? existing.data?.address;
       const pc   = patch.postcode ?? existing.data?.postcode;
       const coords = await geocode(addr, pc);
@@ -99,6 +102,7 @@ router.patch('/:id', async (req, res) => {
     .from('customers')
     .update(patch)
     .eq('id', req.params.id)
+    .eq('company_id', req.companyId)
     .select()
     .single();
 
@@ -110,7 +114,8 @@ router.delete('/:id', async (req, res) => {
   const { error } = await supabase
     .from('customers')
     .update({ active: false })
-    .eq('id', req.params.id);
+    .eq('id', req.params.id)
+    .eq('company_id', req.companyId);
 
   if (error) return res.status(500).json({ error: error.message });
   res.status(204).end();

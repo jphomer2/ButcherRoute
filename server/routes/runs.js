@@ -8,6 +8,7 @@ router.get('/', async (req, res) => {
   let query = supabase
     .from('runs')
     .select('*, driver(name, whatsapp_number, van_plate)')
+    .eq('company_id', req.companyId)
     .order('delivery_date', { ascending: false });
 
   if (date) query = query.eq('delivery_date', date);
@@ -21,12 +22,18 @@ router.delete('/', async (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ error: 'date query param required' });
 
-  const { error: e1 } = await supabase.from('delivery_stops').delete().eq('delivery_date', date);
-  const { error: e2 } = await supabase.from('whatsapp_messages').delete().eq('delivery_date', date);
-  const { error: e3 } = await supabase.from('runs').delete().eq('delivery_date', date);
+  // Find runs for this company+date to scope stop deletion
+  const { data: runs } = await supabase.from('runs').select('id').eq('delivery_date', date).eq('company_id', req.companyId);
+  const runIds = (runs || []).map(r => r.id);
 
-  if (e1 || e2 || e3) {
-    return res.status(500).json({ error: (e1 || e2 || e3).message });
+  if (runIds.length) {
+    await supabase.from('delivery_stops').delete().in('run_id', runIds);
+  }
+  const { error: e2 } = await supabase.from('whatsapp_messages').delete().eq('delivery_date', date);
+  const { error: e3 } = await supabase.from('runs').delete().eq('delivery_date', date).eq('company_id', req.companyId);
+
+  if (e2 || e3) {
+    return res.status(500).json({ error: (e2 || e3).message });
   }
 
   res.status(204).end();
@@ -69,6 +76,7 @@ router.get('/:id', async (req, res) => {
     .from('runs')
     .select('*, driver(name, whatsapp_number, van_plate)')
     .eq('id', req.params.id)
+    .eq('company_id', req.companyId)
     .single();
 
   if (runErr) return res.status(404).json({ error: 'Run not found' });
@@ -76,7 +84,7 @@ router.get('/:id', async (req, res) => {
   const { data: stops, error: stopsErr } = await supabase
     .from('delivery_stops')
     .select('*, customers(name, address, postcode, lat, lng, delivery_notes)')
-    .eq('delivery_date', run.delivery_date)
+    .eq('run_id', req.params.id)
     .order('route_sequence');
 
   if (stopsErr) return res.status(500).json({ error: stopsErr.message });
@@ -90,7 +98,7 @@ router.post('/', async (req, res) => {
 
   const { data, error } = await supabase
     .from('runs')
-    .insert({ delivery_date, driver_id: driver_id || null, status: 'building' })
+    .insert({ delivery_date, driver_id: driver_id || null, status: 'building', company_id: req.companyId })
     .select()
     .single();
 
@@ -99,11 +107,10 @@ router.post('/', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const { data: run } = await supabase.from('runs').select('delivery_date').eq('id', req.params.id).single();
+  const { data: run } = await supabase.from('runs').select('id').eq('id', req.params.id).eq('company_id', req.companyId).single();
   if (!run) return res.status(404).json({ error: 'Run not found' });
 
-  await supabase.from('delivery_stops').delete().eq('delivery_date', run.delivery_date);
-  await supabase.from('whatsapp_messages').delete().eq('delivery_date', run.delivery_date);
+  await supabase.from('delivery_stops').delete().eq('run_id', req.params.id);
   await supabase.from('runs').delete().eq('id', req.params.id);
 
   res.status(204).end();
@@ -114,6 +121,7 @@ router.patch('/:id', async (req, res) => {
     .from('runs')
     .update({ ...req.body, updated_at: new Date().toISOString() })
     .eq('id', req.params.id)
+    .eq('company_id', req.companyId)
     .select()
     .single();
 
@@ -126,6 +134,7 @@ router.post('/:id/dispatch', async (req, res) => {
     .from('runs')
     .select('*, driver(name, whatsapp_number, van_plate)')
     .eq('id', req.params.id)
+    .eq('company_id', req.companyId)
     .single();
 
   if (runErr || !run) return res.status(404).json({ error: 'Run not found' });
@@ -136,13 +145,13 @@ router.post('/:id/dispatch', async (req, res) => {
 });
 
 router.get('/:id/stops', async (req, res) => {
-  const { data: run } = await supabase.from('runs').select('delivery_date').eq('id', req.params.id).single();
+  const { data: run } = await supabase.from('runs').select('id').eq('id', req.params.id).eq('company_id', req.companyId).single();
   if (!run) return res.status(404).json({ error: 'Run not found' });
 
   const { data, error } = await supabase
     .from('delivery_stops')
     .select('*, customers(name, address, postcode, lat, lng)')
-    .eq('delivery_date', run.delivery_date)
+    .eq('run_id', req.params.id)
     .order('route_sequence');
 
   if (error) return res.status(500).json({ error: error.message });

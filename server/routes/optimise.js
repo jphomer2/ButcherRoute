@@ -12,15 +12,25 @@ router.post('/', async (req, res) => {
   const { delivery_date } = req.body;
   if (!delivery_date) return res.status(400).json({ error: 'delivery_date required' });
 
+  // Find the run for this company + date
+  const { data: run } = await supabase
+    .from('runs')
+    .select('id')
+    .eq('delivery_date', delivery_date)
+    .eq('company_id', req.companyId)
+    .maybeSingle();
+
+  if (!run) return res.status(404).json({ error: 'No run found for this date' });
+
   const { data: stops, error } = await supabase
     .from('delivery_stops')
     .select('id, customer_name_raw, tbc, customers(name, lat, lng)')
-    .eq('delivery_date', delivery_date)
+    .eq('run_id', run.id)
     .eq('tbc', false);
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const geocoded = stops.filter(s => s.customers?.lat && s.customers?.lng);
+  const geocoded    = stops.filter(s => s.customers?.lat && s.customers?.lng);
   const ungeocodable = stops.filter(s => !s.customers?.lat || !s.customers?.lng);
 
   if (geocoded.length < 2) {
@@ -42,8 +52,8 @@ router.post('/', async (req, res) => {
   };
 
   let optimisedOrder = null;
-  let totalMetres = null;
-  let totalSeconds = null;
+  let totalMetres    = null;
+  let totalSeconds   = null;
 
   try {
     const routeRes = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
@@ -85,7 +95,7 @@ router.post('/', async (req, res) => {
     }
   }
 
-  const miles = totalMetres ? Math.round(totalMetres / 1609.344 * 10) / 10 : null;
+  const miles   = totalMetres ? Math.round(totalMetres / 1609.344 * 10) / 10 : null;
   const minutes = totalSeconds ? Math.round(totalSeconds / 60) : null;
   const mapsUrl = buildOptimisedUrl(geocoded, optimisedOrder);
 
@@ -97,22 +107,22 @@ router.post('/', async (req, res) => {
       route_url: mapsUrl,
       updated_at: new Date().toISOString(),
     })
-    .eq('delivery_date', delivery_date);
+    .eq('id', run.id);
 
   res.json({
     stops_optimised: geocoded.length,
-    stops_skipped: ungeocodable.length,
-    total_miles: miles,
+    stops_skipped:   ungeocodable.length,
+    total_miles:     miles,
     est_drive_minutes: minutes,
-    maps_url: mapsUrl,
+    maps_url:        mapsUrl,
     optimised_order: optimisedOrder,
   });
 });
 
 function buildOptimisedUrl(stops, order) {
-  const ordered = order ? order.map(i => stops[i]) : stops;
-  const origin      = `${DEPOT.lat},${DEPOT.lng}`;
-  const waypoints   = ordered.map(s => `${s.customers.lat},${s.customers.lng}`).join('|');
+  const ordered   = order ? order.map(i => stops[i]) : stops;
+  const origin    = `${DEPOT.lat},${DEPOT.lng}`;
+  const waypoints = ordered.map(s => `${s.customers.lat},${s.customers.lng}`).join('|');
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}&travelmode=driving`;
 }
 
