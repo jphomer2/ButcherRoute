@@ -29,13 +29,8 @@ app.use(async (req, res, next) => {
   const { data: { user }, error } = await authClient.auth.getUser(token);
   if (error || !user) return res.status(401).json({ error: 'Invalid session' });
 
-  // Look up this user's company using their JWT for RLS
-  const userScopedClient = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
-  const { data: userRow } = await userScopedClient
+  // Look up this user's company (anon policy allows server to read users table)
+  const { data: userRow } = await authClient
     .from('users')
     .select('company_id')
     .eq('id', user.id)
