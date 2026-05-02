@@ -18,7 +18,7 @@ export default function Header({ onDriversOpen }) {
             Butcher<span style={{ color: 'var(--rust)' }}>Route</span>
           </div>
           <div style={{ fontFamily: 'DM Mono', fontSize: '0.52rem', color: 'var(--light-mid)', letterSpacing: '1.5px', marginTop: '2px' }}>
-            SUFFOLK FARMS · DISPATCH
+            BUTCHERROUTE · DISPATCH
           </div>
         </div>
 

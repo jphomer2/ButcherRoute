@@ -38,7 +38,7 @@ export default function LoginScreen() {
               Butcher<span style={{ color: 'var(--rust)' }}>Route</span>
             </div>
             <div style={{ fontFamily: 'DM Mono', fontSize: '0.5rem', color: 'var(--light-mid)', letterSpacing: '1.5px', marginTop: '3px' }}>
-              SUFFOLK FARMS · DISPATCH
+              BUTCHERROUTE · DISPATCH
             </div>
           </div>
         </div>

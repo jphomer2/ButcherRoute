@@ -179,7 +179,7 @@ export default function AnalyticsPage() {
               Depot Analytics
             </h1>
             <div style={{ fontFamily: 'DM Mono', fontSize: '0.62rem', color: 'var(--light-mid)', letterSpacing: '1px', marginTop: '3px' }}>
-              SUFFOLK FARMS LTD
+              BUTCHERROUTE
             </div>
           </div>
 
