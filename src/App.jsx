@@ -29,6 +29,7 @@ export default function App() {
   const [driversOpen,   setDriversOpen]   = useState(false);
 
   const isMobile = useIsMobile();
+  const isDemo   = session?.user?.email === 'demo@butcherroute.com';
 
   // Load run + stops whenever date changes
   useEffect(() => {
@@ -187,6 +188,20 @@ export default function App() {
     }
   }, [runId]);
 
+  const demoBanner = isDemo && (
+    <div style={{
+      background: 'rgba(15,118,110,0.06)', borderBottom: '1px solid rgba(15,118,110,0.2)',
+      padding: '0.45rem 1.5rem', fontFamily: 'DM Mono', fontSize: '0.68rem',
+      color: 'var(--rust)', display: 'flex', alignItems: 'center', gap: '8px',
+      letterSpacing: '0.5px',
+    }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      DEMO ACCOUNT — Clear and Dispatch are disabled
+    </div>
+  );
+
   const errorBanner = error && (
     <div style={{
       background: 'rgba(220,38,38,0.06)', borderBottom: '1px solid rgba(220,38,38,0.2)',
@@ -211,6 +226,7 @@ export default function App() {
       onUnlock={handleUnlock}
       onDeleteStop={handleDeleteStop}
       onUpdateStop={handleUpdateStop}
+      isDemo={isDemo}
     />
   );
 
@@ -243,7 +259,9 @@ export default function App() {
           optimising={optimising}
           runStatus={runStatus}
           stopCount={stops.length}
+          isDemo={isDemo}
         />
+        {demoBanner}
         {errorBanner}
 
         {/* Tab content */}
@@ -320,7 +338,9 @@ export default function App() {
         optimising={optimising}
         runStatus={runStatus}
         stopCount={stops.length}
+        isDemo={isDemo}
       />
+      {demoBanner}
       {errorBanner}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {sidebar}

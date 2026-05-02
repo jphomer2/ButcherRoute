@@ -18,7 +18,7 @@ const STATUS = {
   dispatched: { label: 'DISPATCHED', color: 'var(--light-mid)', bg: 'rgba(100,116,139,0.08)' },
 };
 
-export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, runMapsUrl, onDispatch, onUnlock, onDeleteStop, onUpdateStop }) {
+export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinutes, runMapsUrl, onDispatch, onUnlock, onDeleteStop, onUpdateStop, isDemo }) {
   const mapsUrl = runMapsUrl || buildMapsUrl(stops, DEPOT);
   const status  = STATUS[runStatus] || STATUS.building;
   const locked  = runStatus === 'dispatched';
@@ -43,13 +43,15 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
             </svg>
             Committed — read-only
           </div>
-          <button onClick={onUnlock} style={{
-            background: 'none', border: '1px solid var(--mid)', borderRadius: '5px',
-            color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
-            padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.5px',
-          }}>
-            Unlock
-          </button>
+          {!isDemo && (
+            <button onClick={onUnlock} style={{
+              background: 'none', border: '1px solid var(--mid)', borderRadius: '5px',
+              color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.65rem',
+              padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.5px',
+            }}>
+              Unlock
+            </button>
+          )}
         </div>
       )}
 
@@ -91,11 +93,14 @@ export default function RouteCard({ stops, runDate, runStatus, runMiles, runMinu
           )}
 
           {onDispatch && stops.length > 0 && !locked && (
-            <button onClick={onDispatch} style={{
-              padding: '0.45rem 1rem', background: 'var(--green-dark)', border: 'none',
-              borderRadius: '6px', color: 'white', fontFamily: 'DM Mono',
-              fontSize: '0.7rem', letterSpacing: '1px', cursor: 'pointer',
+            <button onClick={isDemo ? undefined : onDispatch} disabled={isDemo} style={{
+              padding: '0.45rem 1rem',
+              background: isDemo ? '#94A3B8' : 'var(--green-dark)',
+              border: 'none', borderRadius: '6px', color: 'white', fontFamily: 'DM Mono',
+              fontSize: '0.7rem', letterSpacing: '1px',
+              cursor: isDemo ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap',
+              opacity: isDemo ? 0.5 : 1,
             }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
               DISPATCH

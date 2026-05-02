@@ -1,4 +1,4 @@
-export default function DateBar({ date, onChange, onOptimise, onClear, optimising, runStatus, stopCount }) {
+export default function DateBar({ date, onChange, onOptimise, onClear, optimising, runStatus, stopCount, isDemo }) {
   const isToday = date === new Date().toISOString().split('T')[0];
 
   function shift(days) {
@@ -36,11 +36,13 @@ export default function DateBar({ date, onChange, onOptimise, onClear, optimisin
       <div style={{ flex: 1 }} />
 
       {stopCount > 0 && runStatus !== 'dispatched' && (
-        <button onClick={onClear} style={{
+        <button onClick={isDemo ? undefined : onClear} disabled={isDemo} style={{
           padding: '0.38rem 0.9rem', borderRadius: '6px', border: '1px solid var(--mid)',
-          cursor: 'pointer', background: 'transparent', color: 'var(--light-mid)',
+          cursor: isDemo ? 'not-allowed' : 'pointer',
+          background: 'transparent',
+          color: isDemo ? 'var(--mid)' : 'var(--light-mid)',
           fontFamily: 'DM Mono', fontSize: '0.7rem', letterSpacing: '0.5px',
-          transition: 'all 0.15s',
+          transition: 'all 0.15s', opacity: isDemo ? 0.5 : 1,
         }}>
           Clear
         </button>
