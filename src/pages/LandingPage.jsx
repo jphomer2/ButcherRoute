@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // ── Palette ──────────────────────────────────────────────────────────────────
 const T = {
@@ -24,49 +25,65 @@ const sans = { fontFamily: 'DM Sans' };
 const label = { ...mono, fontSize: '0.6rem', letterSpacing: '2.5px', color: T.teal, textTransform: 'uppercase' };
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
-function Nav({ onCta }) {
+function Nav({ onCta, isMobile }) {
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
       background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
       borderBottom: `1px solid ${T.border}`,
-      height: '64px', padding: '0 2.5rem',
+      height: '56px', padding: isMobile ? '0 1.25rem' : '0 2.5rem',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <svg width="28" height="28" viewBox="0 0 30 30" fill="none">
           <rect width="30" height="30" rx="8" fill={T.teal} />
           <path d="M6 20h3.5l1.5-7h9l1.5 7H24M10 15h10M8 20a2 2 0 1 0 4 0M18 20a2 2 0 1 0 4 0"
             stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ ...sans, fontWeight: 700, fontSize: '1.1rem', color: T.black, letterSpacing: '0.5px' }}>
+        <span style={{ ...sans, fontWeight: 700, fontSize: '1.05rem', color: T.black, letterSpacing: '0.5px' }}>
           Butcher<span style={{ color: T.teal }}>Route</span>
         </span>
       </div>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <span style={{ ...mono, fontSize: '0.6rem', letterSpacing: '1.5px', color: T.muted }}>
-          FOR UK MEAT WHOLESALERS
-        </span>
-        <button
-          onClick={onCta}
-          style={{
-            ...mono, background: 'transparent', border: `1px solid ${T.border}`,
-            borderRadius: '7px', color: T.muted, fontSize: '0.65rem',
-            letterSpacing: '1px', padding: '7px 16px', cursor: 'pointer',
-          }}
-        >
-          SIGN IN
-        </button>
+      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+        {!isMobile && (
+          <span style={{ ...mono, fontSize: '0.6rem', letterSpacing: '1.5px', color: T.muted }}>
+            FOR UK MEAT WHOLESALERS
+          </span>
+        )}
+        {!isMobile && (
+          <button
+            onClick={onCta}
+            style={{
+              ...mono, background: 'transparent', border: `1px solid ${T.border}`,
+              borderRadius: '7px', color: T.muted, fontSize: '0.65rem',
+              letterSpacing: '1px', padding: '7px 16px', cursor: 'pointer',
+            }}
+          >
+            SIGN IN
+          </button>
+        )}
         <button
           onClick={() => document.getElementById('demo-form').scrollIntoView({ behavior: 'smooth' })}
           style={{
             ...mono, background: T.teal, border: 'none',
             borderRadius: '7px', color: 'white', fontSize: '0.65rem',
-            letterSpacing: '1px', padding: '8px 18px', cursor: 'pointer',
+            letterSpacing: '1px', padding: '8px 16px', cursor: 'pointer',
           }}
         >
           REQUEST DEMO
         </button>
+        {isMobile && (
+          <button
+            onClick={onCta}
+            style={{
+              ...mono, background: 'transparent', border: `1px solid ${T.border}`,
+              borderRadius: '7px', color: T.muted, fontSize: '0.65rem',
+              letterSpacing: '1px', padding: '7px 14px', cursor: 'pointer',
+            }}
+          >
+            SIGN IN
+          </button>
+        )}
       </div>
     </nav>
   );
@@ -75,8 +92,7 @@ function Nav({ onCta }) {
 // ── Step card ─────────────────────────────────────────────────────────────────
 function Step({ number, title, what, control, last }) {
   return (
-    <div style={{ display: 'flex', gap: '2rem', position: 'relative' }}>
-      {/* Timeline spine */}
+    <div style={{ display: 'flex', gap: '1.5rem', position: 'relative' }}>
       {!last && (
         <div style={{
           position: 'absolute', left: '19px', top: '44px',
@@ -84,7 +100,6 @@ function Step({ number, title, what, control, last }) {
           background: T.border,
         }} />
       )}
-      {/* Number */}
       <div style={{ flexShrink: 0, zIndex: 1 }}>
         <div style={{
           width: '40px', height: '40px', borderRadius: '50%',
@@ -95,7 +110,6 @@ function Step({ number, title, what, control, last }) {
           {number}
         </div>
       </div>
-      {/* Content */}
       <div style={{ paddingBottom: last ? 0 : '2.5rem', flex: 1 }}>
         <div style={{ ...sans, fontWeight: 700, fontSize: '1.05rem', color: T.black, marginBottom: '0.5rem' }}>
           {title}
@@ -145,7 +159,7 @@ function Feature({ icon, title, body }) {
 }
 
 // ── Demo form ─────────────────────────────────────────────────────────────────
-function DemoForm() {
+function DemoForm({ isMobile }) {
   const [form,    setForm]    = useState({ name: '', depot_name: '', phone: '' });
   const [loading, setLoading] = useState(false);
   const [done,    setDone]    = useState(false);
@@ -175,10 +189,10 @@ function DemoForm() {
     <section id="demo-form" style={{
       background: T.white, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`,
     }}>
-      <div style={{ maxWidth: '520px', margin: '0 auto', padding: '80px 2rem' }}>
+      <div style={{ maxWidth: '520px', margin: '0 auto', padding: isMobile ? '56px 1.25rem' : '80px 2rem' }}>
         <div style={{ marginBottom: '2.5rem' }}>
           <div style={{ ...label, marginBottom: '0.75rem' }}>REQUEST A DEMO</div>
-          <h2 style={{ ...sans, fontWeight: 700, fontSize: '1.85rem', color: T.black, marginBottom: '0.75rem', lineHeight: 1.2 }}>
+          <h2 style={{ ...sans, fontWeight: 700, fontSize: isMobile ? '1.5rem' : '1.85rem', color: T.black, marginBottom: '0.75rem', lineHeight: 1.2 }}>
             See it running on your routes
           </h2>
           <p style={{ ...sans, fontSize: '0.9rem', color: T.muted, lineHeight: 1.65 }}>
@@ -265,6 +279,7 @@ function DemoForm() {
 export default function LandingPage() {
   const session  = useSession();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (session) navigate('/app');
@@ -274,30 +289,34 @@ export default function LandingPage() {
 
   return (
     <div style={{ background: T.offWhite, minHeight: '100vh', color: T.black }}>
-      <Nav onCta={goToApp} />
+      <Nav onCta={goToApp} isMobile={isMobile} />
 
       {/* ── Hero ── */}
       <section style={{ background: T.white, borderBottom: `1px solid ${T.border}` }}>
-        <div style={{ maxWidth: '860px', margin: '0 auto', padding: '140px 2rem 90px', textAlign: 'center' }}>
+        <div style={{
+          maxWidth: '860px', margin: '0 auto',
+          padding: isMobile ? '90px 1.25rem 60px' : '140px 2rem 90px',
+          textAlign: 'center',
+        }}>
           <div style={{
             ...mono, fontSize: '0.6rem', letterSpacing: '2.5px', color: T.teal,
             background: T.tealLight, border: `1px solid ${T.tealBorder}`,
-            display: 'inline-block', padding: '5px 14px', borderRadius: '20px', marginBottom: '2rem',
+            display: 'inline-block', padding: '5px 14px', borderRadius: '20px', marginBottom: '1.5rem',
           }}>
             UK MEAT WHOLESALE · ORDER & DISPATCH
           </div>
 
           <h1 style={{
-            ...sans, fontWeight: 800, color: T.black, lineHeight: 1.1,
-            fontSize: 'clamp(2.1rem, 4.5vw, 3.4rem)',
-            marginBottom: '1.5rem', letterSpacing: '-0.5px',
+            ...sans, fontWeight: 800, color: T.black, lineHeight: 1.15,
+            fontSize: isMobile ? '1.9rem' : 'clamp(2.1rem, 4.5vw, 3.4rem)',
+            marginBottom: '1.25rem', letterSpacing: '-0.5px',
           }}>
-            Order management and dispatch<br />software built for UK meat wholesalers.
+            Order management and dispatch software built for UK meat wholesalers.
           </h1>
 
           <p style={{
-            ...sans, fontSize: '1.05rem', color: T.body,
-            lineHeight: 1.75, maxWidth: '560px', margin: '0 auto 2.5rem',
+            ...sans, fontSize: isMobile ? '0.95rem' : '1.05rem', color: T.body,
+            lineHeight: 1.75, maxWidth: '560px', margin: '0 auto 2rem',
           }}>
             From the first WhatsApp message to the driver leaving the depot — ButcherRoute handles the routing, the sequencing, and the dispatch. Every step is visible. Every decision is yours.
           </p>
@@ -310,6 +329,7 @@ export default function LandingPage() {
                 background: T.teal, border: 'none', borderRadius: '9px',
                 color: 'white', padding: '13px 28px', cursor: 'pointer',
                 boxShadow: `0 2px 12px ${T.teal}35`,
+                width: isMobile ? '100%' : 'auto',
               }}
             >
               Request a Demo
@@ -320,6 +340,7 @@ export default function LandingPage() {
                 ...sans, fontWeight: 500, fontSize: '0.95rem',
                 background: T.white, border: `1px solid ${T.border}`, borderRadius: '9px',
                 color: T.muted, padding: '13px 28px', cursor: 'pointer',
+                width: isMobile ? '100%' : 'auto',
               }}
             >
               Sign In →
@@ -331,24 +352,30 @@ export default function LandingPage() {
       {/* ── What it does ── */}
       <div style={{ borderBottom: `1px solid ${T.border}`, background: T.offWhite }}>
         <div style={{
-          maxWidth: '900px', margin: '0 auto', padding: '2.5rem 2rem',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '0', textAlign: 'center',
+          maxWidth: '900px', margin: '0 auto',
+          padding: isMobile ? '0' : '0',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
+          gap: '0',
+          textAlign: 'center',
         }}>
           {[
             { value: 'Orders',   body: 'Parsed from WhatsApp automatically' },
             { value: 'Routes',   body: 'Optimised by Google Maps, stop by stop' },
             { value: 'Dispatch', body: 'Sent directly to the driver\'s phone' },
             { value: 'History',  body: 'Every run logged and searchable' },
-          ].map((s, i, arr) => (
+          ].map((s, i) => (
             <div key={s.value} style={{
               padding: '1.5rem 1rem',
-              borderRight: i < arr.length - 1 ? `1px solid ${T.border}` : 'none',
+              borderRight: isMobile
+                ? (i % 2 === 0 ? `1px solid ${T.border}` : 'none')
+                : (i < 3 ? `1px solid ${T.border}` : 'none'),
+              borderBottom: isMobile && i < 2 ? `1px solid ${T.border}` : 'none',
             }}>
-              <div style={{ ...sans, fontWeight: 700, fontSize: '1.1rem', color: T.teal, marginBottom: '0.35rem' }}>
+              <div style={{ ...sans, fontWeight: 700, fontSize: '1.05rem', color: T.teal, marginBottom: '0.35rem' }}>
                 {s.value}
               </div>
-              <div style={{ ...sans, fontSize: '0.83rem', color: T.muted, lineHeight: 1.5 }}>
+              <div style={{ ...sans, fontSize: '0.8rem', color: T.muted, lineHeight: 1.5 }}>
                 {s.body}
               </div>
             </div>
@@ -358,10 +385,10 @@ export default function LandingPage() {
 
       {/* ── How it works ── */}
       <section style={{ background: T.white, borderBottom: `1px solid ${T.border}` }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto', padding: '80px 2rem' }}>
-          <div style={{ marginBottom: '3rem' }}>
+        <div style={{ maxWidth: '720px', margin: '0 auto', padding: isMobile ? '56px 1.25rem' : '80px 2rem' }}>
+          <div style={{ marginBottom: '2.5rem' }}>
             <div style={{ ...label, marginBottom: '0.75rem' }}>HOW IT WORKS</div>
-            <h2 style={{ ...sans, fontWeight: 700, fontSize: '1.85rem', color: T.black, lineHeight: 1.2, marginBottom: '0.75rem' }}>
+            <h2 style={{ ...sans, fontWeight: 700, fontSize: isMobile ? '1.5rem' : '1.85rem', color: T.black, lineHeight: 1.2, marginBottom: '0.75rem' }}>
               Exactly what happens to every order
             </h2>
             <p style={{ ...sans, fontSize: '0.9rem', color: T.muted, lineHeight: 1.65, maxWidth: '480px' }}>
@@ -397,15 +424,15 @@ export default function LandingPage() {
 
       {/* ── Features ── */}
       <section style={{ background: T.offWhite, borderBottom: `1px solid ${T.border}` }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '80px 2rem' }}>
-          <div style={{ marginBottom: '3rem' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto', padding: isMobile ? '56px 1.25rem' : '80px 2rem' }}>
+          <div style={{ marginBottom: '2.5rem' }}>
             <div style={{ ...label, marginBottom: '0.75rem' }}>BUILT FOR DEPOTS</div>
-            <h2 style={{ ...sans, fontWeight: 700, fontSize: '1.85rem', color: T.black }}>
+            <h2 style={{ ...sans, fontWeight: 700, fontSize: isMobile ? '1.5rem' : '1.85rem', color: T.black }}>
               Everything in one place
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
             <Feature
               icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}
               title="WhatsApp Order Intake"
@@ -441,20 +468,20 @@ export default function LandingPage() {
       </section>
 
       {/* ── Demo form ── */}
-      <DemoForm />
+      <DemoForm isMobile={isMobile} />
 
       {/* ── Footer ── */}
       <footer style={{
         background: T.white, borderTop: `1px solid ${T.border}`,
-        padding: '1.75rem 2.5rem',
+        padding: isMobile ? '1.25rem' : '1.75rem 2.5rem',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: '1rem',
+        flexWrap: 'wrap', gap: '0.75rem',
       }}>
         <span style={{ ...sans, fontWeight: 700, fontSize: '0.95rem', color: T.black }}>
           Butcher<span style={{ color: T.teal }}>Route</span>
         </span>
         <span style={{ ...mono, fontSize: '0.58rem', color: T.muted, letterSpacing: '1px' }}>
-          © 2026 SUFFOLK FARMS LTD · ALL RIGHTS RESERVED
+          © 2026 BUTCHERROUTE · ALL RIGHTS RESERVED
         </span>
       </footer>
     </div>

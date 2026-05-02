@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSession } from '../contexts/AuthContext';
 import LoginScreen from '../components/LoginScreen';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 function StatCard({ label, value, sub, accent }) {
   const color = accent || 'var(--rust)';
@@ -52,8 +53,9 @@ const STATUS_COLOR = {
 };
 
 export default function AnalyticsPage() {
-  const session = useSession();
+  const session  = useSession();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [runs,    setRuns]    = useState([]);
   const [stops,   setStops]   = useState([]);
@@ -109,11 +111,11 @@ export default function AnalyticsPage() {
       {/* Header */}
       <header style={{
         background: 'var(--charcoal)', borderBottom: '1px solid var(--mid)',
-        padding: '0 1.5rem', height: '56px',
+        padding: isMobile ? '0 1rem' : '0 1.5rem', height: '56px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         position: 'sticky', top: 0, zIndex: 50,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
               <rect width="30" height="30" rx="8" fill="var(--rust)" />
@@ -125,37 +127,50 @@ export default function AnalyticsPage() {
             </span>
           </div>
 
-          <nav style={{ display: 'flex', gap: '0.25rem' }}>
-            {[
-              { label: 'DISPATCH', path: '/app' },
-              { label: 'ANALYTICS', path: '/app/analytics' },
-            ].map(({ label, path }) => (
-              <button key={path} onClick={() => navigate(path)} style={{
-                background: path === '/app/analytics' ? 'rgba(194,81,42,0.1)' : 'transparent',
-                border: 'none', borderRadius: '6px',
-                color: path === '/app/analytics' ? 'var(--rust)' : 'var(--light-mid)',
-                fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '1.5px',
-                padding: '6px 12px', cursor: 'pointer',
-              }}>
-                {label}
-              </button>
-            ))}
-          </nav>
+          {!isMobile && (
+            <nav style={{ display: 'flex', gap: '0.25rem' }}>
+              {[
+                { label: 'DISPATCH', path: '/app' },
+                { label: 'ANALYTICS', path: '/app/analytics' },
+              ].map(({ label, path }) => (
+                <button key={path} onClick={() => navigate(path)} style={{
+                  background: path === '/app/analytics' ? 'rgba(194,81,42,0.1)' : 'transparent',
+                  border: 'none', borderRadius: '6px',
+                  color: path === '/app/analytics' ? 'var(--rust)' : 'var(--light-mid)',
+                  fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '1.5px',
+                  padding: '6px 12px', cursor: 'pointer',
+                }}>
+                  {label}
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
 
-        <button
-          onClick={() => supabase.auth.signOut()}
-          style={{
-            background: 'transparent', border: '1px solid var(--mid)', borderRadius: '6px',
-            color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.62rem',
-            letterSpacing: '1px', padding: '5px 12px', cursor: 'pointer',
-          }}
-        >
-          SIGN OUT
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {isMobile && (
+            <button onClick={() => navigate('/app')} style={{
+              background: 'transparent', border: '1px solid var(--mid)', borderRadius: '6px',
+              color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.62rem',
+              letterSpacing: '1px', padding: '5px 10px', cursor: 'pointer',
+            }}>
+              DISPATCH
+            </button>
+          )}
+          <button
+            onClick={() => supabase.auth.signOut()}
+            style={{
+              background: 'transparent', border: '1px solid var(--mid)', borderRadius: '6px',
+              color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.62rem',
+              letterSpacing: '1px', padding: '5px 12px', cursor: 'pointer',
+            }}
+          >
+            SIGN OUT
+          </button>
+        </div>
       </header>
 
-      <main style={{ flex: 1, padding: '2rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+      <main style={{ flex: 1, padding: isMobile ? '1.25rem' : '2rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
 
         {/* Title + period selector */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -190,7 +205,7 @@ export default function AnalyticsPage() {
         ) : (
           <>
             {/* Stat cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
               <StatCard label="TOTAL RUNS"        value={runs.length}         sub={`${completedRuns} dispatched`} accent="var(--rust)" />
               <StatCard label="STOPS DELIVERED"   value={totalStops}          sub={`${avgStops} avg per run`}     accent="var(--green)" />
               <StatCard label="MILES DRIVEN"       value={totalMiles ? `${Math.round(totalMiles)}mi` : '—'} sub={`${avgMiles}mi avg per run`} accent="var(--amber)" />
@@ -212,7 +227,7 @@ export default function AnalyticsPage() {
                     const count = stopsByDate[r.delivery_date] || 0;
                     const dateLabel = new Date(r.delivery_date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
                     return (
-                      <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 40px', alignItems: 'center', gap: '0.75rem' }}>
+                      <div key={r.id} style={{ display: 'grid', gridTemplateColumns: isMobile ? '80px 1fr 32px' : '110px 1fr 40px', alignItems: 'center', gap: '0.75rem' }}>
                         <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--light-mid)' }}>{dateLabel}</span>
                         <MiniBar value={count} max={maxStops} color={STATUS_COLOR[r.status] || 'var(--rust)'} />
                         <span style={{ fontFamily: 'DM Mono', fontSize: '0.68rem', color: 'var(--cream)', textAlign: 'right' }}>{count}</span>
@@ -240,7 +255,8 @@ export default function AnalyticsPage() {
                   No runs in this period.
                 </div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--mid)' }}>
                       {['Date', 'Stops', 'Miles', 'Drive time', 'Status'].map(h => (
@@ -283,6 +299,7 @@ export default function AnalyticsPage() {
                     })}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </>
