@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useSession } from '../contexts/AuthContext';
 
 export default function Header({ onDriversOpen }) {
   const navigate = useNavigate();
+  const session = useSession();
 
   return (
     <header style={{ background: 'var(--charcoal)', borderBottom: '1px solid var(--mid)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
@@ -56,6 +58,7 @@ export default function Header({ onDriversOpen }) {
           DRIVERS
         </button>
 
+        <span className="mob-hide" style={{ fontSize: '0.62rem', color: 'var(--light-mid)', fontFamily: 'DM Mono' }}>{session?.user?.email}</span>
         <span className="mob-hide">{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
 
         <div className="mob-hide" style={{

@@ -19,15 +19,20 @@ async function geocode(address, postcode) {
 }
 
 router.get('/', async (req, res) => {
+  if (!req.companyId) return res.status(400).json({ error: 'Company not resolved' });
+
   const { data, error } = await supabase
     .from('customers')
-    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone')
+    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone, company_id')
     .eq('active', true)
     .eq('company_id', req.companyId)
     .order('name');
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+
+  // Hard filter: guarantee only this company's customers are ever returned
+  const safe = (data || []).filter(c => c.company_id === req.companyId);
+  res.json(safe.map(({ company_id: _cid, ...rest }) => rest));
 });
 
 router.get('/search', async (req, res) => {
