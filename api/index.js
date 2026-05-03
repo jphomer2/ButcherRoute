@@ -45,8 +45,18 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.get('/api/debug', (req, res) => {
-  res.json({ userId: req.userId, email: req.userEmail, companyId: req.companyId, v: 2 });
+app.get('/api/debug', async (req, res) => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+  const { data, error } = await sb.from('customers').select('id').eq('active', true).eq('company_id', req.companyId);
+  res.json({
+    userId: req.userId,
+    email: req.userEmail,
+    companyId: req.companyId,
+    customerCount: data?.length ?? null,
+    queryError: error?.message ?? null,
+    v: 3,
+  });
 });
 
 app.use('/api/parse', parseRoutes);
