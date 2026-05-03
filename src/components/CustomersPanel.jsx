@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
+import { useSession } from '../contexts/AuthContext';
 
 const inputStyle = {
   width: '100%', background: 'var(--blood)', border: '1px solid var(--mid)',
@@ -139,15 +140,17 @@ function CustomerRow({ customer, onEdit, onRemove }) {
 }
 
 export default function CustomersPanel() {
+  const session = useSession();
   const [customers, setCustomers] = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [drawer,    setDrawer]    = useState(false);
   const [editing,   setEditing]   = useState(null);
   const [search,    setSearch]    = useState('');
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [session?.user?.id]);
 
   async function load() {
+    if (!session?.user?.id) { setLoading(false); return; }
     setLoading(true);
     try { setCustomers((await api.customers()) || []); }
     catch {}
