@@ -18,19 +18,19 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// All other /api/* routes require a valid Supabase session
+// Shared anon client for token verification and non-sensitive lookups
 const authClient = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
+// Auth middleware — runs before every route below
 app.use(async (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
   const { data: { user }, error } = await authClient.auth.getUser(token);
   if (error || !user) return res.status(401).json({ error: 'Invalid session' });
 
-  // Look up this user's company (anon policy allows server to read users table)
   const { data: userRow } = await authClient
     .from('users')
     .select('company_id')
@@ -39,39 +39,45 @@ app.use(async (req, res, next) => {
 
   const SUFFOLK_COMPANY = 'c87aa0fc-b567-49ef-89bb-2f4030ab6c14';
   const DEMO_COMPANY    = 'd0000000-0000-0000-0000-000000000001';
-  req.userId    = user.id;
-  req.userEmail = user.email;
-  req.companyId = userRow?.company_id ??
+  req.userId      = user.id;
+  req.userEmail   = user.email;
+  req.accessToken = token;
+  req.companyId   = userRow?.company_id ??
     (user.email === 'demo@butcherroute.com' ? DEMO_COMPANY : SUFFOLK_COMPANY);
   next();
 });
 
+// Debug endpoint
 app.get('/api/debug', async (req, res) => {
-  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-  const { data, error } = await sb.from('customers').select('id').eq('active', true).eq('company_id', req.companyId);
+  // Use user JWT so RLS restricts to their company
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${req.accessToken}` } },
+  });
+  const { data, error } = await sb.from('customers').select('id').eq('active', true);
   res.json({
-    userId: req.userId,
-    email: req.userEmail,
-    companyId: req.companyId,
+    userId:        req.userId,
+    email:         req.userEmail,
+    companyId:     req.companyId,
     customerCount: data?.length ?? null,
-    queryError: error?.message ?? null,
-    v: 4,
+    queryError:    error?.message ?? null,
+    v: 5,
   });
 });
 
-// Customers list — defined here so Vercel rebuilds pick up company isolation
+// ── Customers list ──────────────────────────────────────────────────────────
+// Uses the user's own JWT so Supabase's RLS policy (auth_users_read_own_customers)
+// enforces company isolation at the database level — no server-side filter needed.
 app.get('/api/customers', async (req, res) => {
-  if (!req.companyId) return res.status(400).json({ error: 'Company not resolved' });
-  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${req.accessToken}` } },
+  });
   const { data, error } = await sb
     .from('customers')
-    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone, company_id')
+    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone')
     .eq('active', true)
-    .eq('company_id', req.companyId)
     .order('name');
   if (error) return res.status(500).json({ error: error.message });
-  const safe = (data || []).filter(c => c.company_id === req.companyId);
-  res.json(safe.map(({ company_id: _cid, ...rest }) => rest));
+  res.json(data || []);
 });
 
 app.use('/api/parse', parseRoutes);
