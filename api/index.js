@@ -47,7 +47,6 @@ app.use(async (req, res, next) => {
 });
 
 app.get('/api/debug', async (req, res) => {
-  const { createClient } = await import('@supabase/supabase-js');
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
   const { data, error } = await sb.from('customers').select('id').eq('active', true).eq('company_id', req.companyId);
   res.json({
@@ -56,8 +55,23 @@ app.get('/api/debug', async (req, res) => {
     companyId: req.companyId,
     customerCount: data?.length ?? null,
     queryError: error?.message ?? null,
-    v: 3,
+    v: 4,
   });
+});
+
+// Customers list — defined here so Vercel rebuilds pick up company isolation
+app.get('/api/customers', async (req, res) => {
+  if (!req.companyId) return res.status(400).json({ error: 'Company not resolved' });
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+  const { data, error } = await sb
+    .from('customers')
+    .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone, company_id')
+    .eq('active', true)
+    .eq('company_id', req.companyId)
+    .order('name');
+  if (error) return res.status(500).json({ error: error.message });
+  const safe = (data || []).filter(c => c.company_id === req.companyId);
+  res.json(safe.map(({ company_id: _cid, ...rest }) => rest));
 });
 
 app.use('/api/parse', parseRoutes);
