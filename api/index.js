@@ -37,13 +37,12 @@ app.use(async (req, res, next) => {
     .eq('id', user.id)
     .maybeSingle();
 
-  const SUFFOLK_COMPANY = 'c87aa0fc-b567-49ef-89bb-2f4030ab6c14';
-  const DEMO_COMPANY    = 'd0000000-0000-0000-0000-000000000001';
+  if (!userRow?.company_id) return res.status(403).json({ error: 'User has no company assigned' });
+
   req.userId      = user.id;
   req.userEmail   = user.email;
   req.accessToken = token;
-  req.companyId   = userRow?.company_id ??
-    (user.email === 'demo@butcherroute.com' ? DEMO_COMPANY : SUFFOLK_COMPANY);
+  req.companyId   = userRow.company_id;
   next();
 });
 

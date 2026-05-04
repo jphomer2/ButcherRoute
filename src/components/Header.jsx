@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSession } from '../contexts/AuthContext';
 
 export default function Header({ onDriversOpen }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const session = useSession();
 
   return (
@@ -31,9 +32,9 @@ export default function Header({ onDriversOpen }) {
             { label: 'ANALYTICS', path: '/app/analytics' },
           ].map(({ label, path }) => (
             <button key={path} onClick={() => navigate(path)} style={{
-              background: window.location.pathname === path ? 'rgba(194,81,42,0.1)' : 'transparent',
+              background: location.pathname === path ? 'rgba(194,81,42,0.1)' : 'transparent',
               border: 'none', borderRadius: '6px',
-              color: window.location.pathname === path ? 'var(--rust)' : 'var(--light-mid)',
+              color: location.pathname === path ? 'var(--rust)' : 'var(--light-mid)',
               fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '1.5px',
               padding: '6px 12px', cursor: 'pointer',
             }}>

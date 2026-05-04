@@ -29,7 +29,12 @@ router.delete('/', async (req, res) => {
   if (runIds.length) {
     await supabase.from('delivery_stops').delete().in('run_id', runIds);
   }
-  const { error: e2 } = await supabase.from('whatsapp_messages').delete().eq('delivery_date', date);
+  // Scope message deletion to only messages referenced by this company's runs
+  const { error: e2 } = runIds.length
+    ? await supabase.from('whatsapp_messages').delete().in('id',
+        (await supabase.from('delivery_stops').select('message_id').in('run_id', runIds)).data?.map(s => s.message_id).filter(Boolean) || []
+      )
+    : { error: null };
   const { error: e3 } = await supabase.from('runs').delete().eq('delivery_date', date).eq('company_id', req.companyId);
 
   if (e2 || e3) {
@@ -51,6 +56,14 @@ router.get('/stops/:stopId', async (req, res) => {
 });
 
 router.patch('/stops/:stopId', async (req, res) => {
+  // Verify stop belongs to this company via its run
+  const { data: stop } = await supabase
+    .from('delivery_stops').select('run_id').eq('id', req.params.stopId).single();
+  if (!stop) return res.status(404).json({ error: 'Stop not found' });
+  const { data: run } = await supabase
+    .from('runs').select('id').eq('id', stop.run_id).eq('company_id', req.companyId).single();
+  if (!run) return res.status(403).json({ error: 'Forbidden' });
+
   const { data, error } = await supabase
     .from('delivery_stops')
     .update(req.body)
@@ -63,10 +76,16 @@ router.patch('/stops/:stopId', async (req, res) => {
 });
 
 router.delete('/stops/:stopId', async (req, res) => {
+  // Verify stop belongs to this company via its run
+  const { data: stop } = await supabase
+    .from('delivery_stops').select('run_id').eq('id', req.params.stopId).single();
+  if (!stop) return res.status(404).json({ error: 'Stop not found' });
+  const { data: run } = await supabase
+    .from('runs').select('id').eq('id', stop.run_id).eq('company_id', req.companyId).single();
+  if (!run) return res.status(403).json({ error: 'Forbidden' });
+
   const { error } = await supabase
-    .from('delivery_stops')
-    .delete()
-    .eq('id', req.params.stopId);
+    .from('delivery_stops').delete().eq('id', req.params.stopId);
   if (error) return res.status(500).json({ error: error.message });
   res.status(204).end();
 });

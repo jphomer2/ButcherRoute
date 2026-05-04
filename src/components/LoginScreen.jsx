@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-const DEMO_EMAIL = 'demo@butcherroute.com';
-const DEMO_PASS  = 'Demo2024!';
-
 export default function LoginScreen() {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -116,37 +113,8 @@ export default function LoginScreen() {
           </button>
         </form>
 
-        {/* Demo credentials */}
-        <div style={{
-          marginTop: '1.5rem', padding: '0.85rem 1rem',
-          background: 'rgba(15,118,110,0.06)', border: '1px solid rgba(15,118,110,0.2)',
-          borderRadius: '8px',
-        }}>
-          <div style={{ fontFamily: 'DM Mono', fontSize: '0.58rem', letterSpacing: '1.5px', color: 'var(--rust)', marginBottom: '0.6rem' }}>
-            DEMO ACCESS
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '0.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--light-mid)' }}>Email</span>
-              <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--cream)' }}>{DEMO_EMAIL}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--light-mid)' }}>Password</span>
-              <span style={{ fontFamily: 'DM Mono', fontSize: '0.65rem', color: 'var(--cream)' }}>{DEMO_PASS}</span>
-            </div>
-          </div>
-          <button
-            onClick={() => { setEmail(DEMO_EMAIL); setPassword(DEMO_PASS); }}
-            style={{
-              width: '100%', padding: '0.5rem',
-              background: 'transparent', border: '1px solid rgba(15,118,110,0.35)',
-              borderRadius: '6px', color: 'var(--rust)',
-              fontFamily: 'DM Mono', fontSize: '0.65rem', letterSpacing: '1px',
-              cursor: 'pointer',
-            }}
-          >
-            FILL IN DEMO CREDENTIALS
-          </button>
+        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontFamily: 'DM Mono', fontSize: '0.58rem', color: 'var(--light-mid)', letterSpacing: '1px' }}>
+          © 2026 ButcherRoute
         </div>
       </div>
     </div>
