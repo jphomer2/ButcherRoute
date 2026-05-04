@@ -64,10 +64,14 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, contact_name, phone, address, postcode, delivery_notes } = req.body;
+  const { name, contact_name, phone, address, postcode, delivery_notes, name_aliases } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
 
   const coords = (address || postcode) ? await geocode(address, postcode) : null;
+
+  const aliases = Array.isArray(name_aliases)
+    ? name_aliases.filter(Boolean)
+    : (typeof name_aliases === 'string' && name_aliases.trim() ? [name_aliases.trim()] : null);
 
   const { data, error } = await supabase
     .from('customers')
@@ -78,6 +82,7 @@ router.post('/', async (req, res) => {
       address: address || null,
       postcode: postcode || null,
       delivery_notes: delivery_notes || null,
+      name_aliases: aliases,
       lat: coords?.lat || null,
       lng: coords?.lng || null,
       active: true,
@@ -92,6 +97,13 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', async (req, res) => {
   const patch = { ...req.body };
+  if (patch.name_aliases !== undefined) {
+    patch.name_aliases = Array.isArray(patch.name_aliases)
+      ? patch.name_aliases.filter(Boolean)
+      : (typeof patch.name_aliases === 'string' && patch.name_aliases.trim()
+          ? patch.name_aliases.split(',').map(s => s.trim()).filter(Boolean)
+          : null);
+  }
 
   if (patch.address !== undefined || patch.postcode !== undefined) {
     if (!patch.lat && !patch.lng) {

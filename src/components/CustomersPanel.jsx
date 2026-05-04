@@ -20,6 +20,9 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
     address:        customer?.address        || '',
     postcode:       customer?.postcode       || '',
     delivery_notes: customer?.delivery_notes || '',
+    name_aliases:   Array.isArray(customer?.name_aliases)
+                      ? customer.name_aliases.join(', ')
+                      : (customer?.name_aliases || ''),
   });
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState(null);
@@ -30,17 +33,22 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
     if (!form.name.trim()) { setError('Shop name is required'); return; }
     setSaving(true); setError(null);
     try {
+      const aliases = form.name_aliases.trim()
+        ? form.name_aliases.split(',').map(s => s.trim()).filter(Boolean)
+        : null;
       const payload = {
-        name:           form.name.trim()           || null,
-        contact_name:   form.contact_name.trim()   || null,
-        phone:          form.phone.trim()           || null,
-        address:        form.address.trim()         || null,
-        postcode:       form.postcode.trim()        || null,
-        delivery_notes: form.delivery_notes.trim()  || null,
+        name:           form.name.trim()          || null,
+        contact_name:   form.contact_name.trim()  || null,
+        phone:          form.phone.trim()          || null,
+        address:        form.address.trim()        || null,
+        postcode:       form.postcode.trim()       || null,
+        delivery_notes: form.delivery_notes.trim() || null,
+        name_aliases:   aliases,
       };
-      if (customer?.id) await api.updateCustomer(customer.id, payload);
-      else              await api.createCustomer(payload);
-      onSaved();
+      let saved;
+      if (customer?.id) saved = await api.updateCustomer(customer.id, payload);
+      else              saved = await api.createCustomer(payload);
+      onSaved(saved);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -77,6 +85,7 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
               <input value={form[k]} onChange={e => update(k, e.target.value)} style={inputStyle} />
             </div>
           ))}
+
           <div>
             <label style={labelStyle}>DELIVERY NOTES</label>
             <textarea
@@ -86,6 +95,21 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
               style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }}
             />
           </div>
+
+          {/* WhatsApp alias */}
+          <div style={{ borderTop: '1px solid var(--mid)', paddingTop: '0.75rem' }}>
+            <label style={labelStyle}>WHATSAPP ORDER NAME</label>
+            <input
+              value={form.name_aliases}
+              onChange={e => update('name_aliases', e.target.value)}
+              placeholder="e.g. Bob's Butchers, Bobby"
+              style={inputStyle}
+            />
+            <div style={{ fontFamily: 'DM Mono', fontSize: '0.58rem', color: 'var(--light-mid)', marginTop: '5px', lineHeight: 1.5 }}>
+              How this customer appears in order messages. Separate multiple names with commas. Used for automatic matching when parsing WhatsApp orders.
+            </div>
+          </div>
+
           {error && <div style={{ color: '#DC2626', fontFamily: 'DM Mono', fontSize: '0.7rem' }}>✗ {error}</div>}
         </div>
 
@@ -141,11 +165,12 @@ function CustomerRow({ customer, onEdit, onRemove }) {
 
 export default function CustomersPanel() {
   const session = useSession();
-  const [customers, setCustomers] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [drawer,    setDrawer]    = useState(false);
-  const [editing,   setEditing]   = useState(null);
-  const [search,    setSearch]    = useState('');
+  const [customers,  setCustomers]  = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [drawer,     setDrawer]     = useState(false);
+  const [editing,    setEditing]    = useState(null);
+  const [search,     setSearch]     = useState('');
+  const [savedName,  setSavedName]  = useState(null);
 
   useEffect(() => { load(); }, [session?.user?.id]);
 
@@ -169,7 +194,18 @@ export default function CustomersPanel() {
     } catch (e) { alert('Remove failed: ' + e.message); }
   }
 
-  async function handleSaved() { closeDrawer(); await load(); }
+  async function handleSaved(savedCustomer) {
+    closeDrawer();
+    // Optimistically update the list immediately
+    if (editing?.id) {
+      setCustomers(prev => prev.map(c => c.id === savedCustomer.id ? savedCustomer : c));
+    } else {
+      setCustomers(prev => [...prev, savedCustomer].sort((a, b) => a.name.localeCompare(b.name)));
+    }
+    // Show confirmation
+    setSavedName(savedCustomer.name);
+    setTimeout(() => setSavedName(null), 4000);
+  }
 
   const filtered = search.trim()
     ? customers.filter(c =>
@@ -191,6 +227,19 @@ export default function CustomersPanel() {
           padding: '5px 12px', cursor: 'pointer',
         }}>+ ADD</button>
       </div>
+
+      {/* Save confirmation banner */}
+      {savedName && (
+        <div style={{
+          padding: '0.55rem 1rem', flexShrink: 0,
+          background: 'rgba(5,150,105,0.08)', borderBottom: '1px solid rgba(5,150,105,0.25)',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          fontFamily: 'DM Mono', fontSize: '0.68rem', color: 'var(--green)',
+        }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          {savedName} saved successfully
+        </div>
+      )}
 
       {/* Search */}
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--mid)', flexShrink: 0 }}>
