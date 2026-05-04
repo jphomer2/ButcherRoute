@@ -46,7 +46,7 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Debug endpoint
+// Debug endpoint — v6
 app.get('/api/debug', async (req, res) => {
   // Use user JWT so RLS restricts to their company
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {

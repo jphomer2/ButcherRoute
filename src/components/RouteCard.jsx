@@ -5,7 +5,7 @@ function buildMapsUrl(stops, depot) {
   const geocoded = stops.filter(s => s.customers?.lat || s.lat);
   if (!geocoded.length) return null;
   const origin = `${depot.lat},${depot.lng}`;
-  const waypoints = geocoded.map(s => `${s.customers?.lat || s.lat},${s.customers?.lng || s.lng}`).join('|');
+  const waypoints = geocoded.map(s => `${s.customers?.lat || s.lat},${s.customers?.lng || s.lng}`).join('%7C');
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}&travelmode=driving`;
 }
 

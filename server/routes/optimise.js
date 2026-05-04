@@ -122,7 +122,7 @@ router.post('/', async (req, res) => {
 function buildOptimisedUrl(stops, order) {
   const ordered   = order ? order.map(i => stops[i]) : stops;
   const origin    = `${DEPOT.lat},${DEPOT.lng}`;
-  const waypoints = ordered.map(s => `${s.customers.lat},${s.customers.lng}`).join('|');
+  const waypoints = ordered.map(s => `${s.customers.lat},${s.customers.lng}`).join('%7C');
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}&travelmode=driving`;
 }
 
@@ -130,7 +130,7 @@ function buildBasicUrl(stops) {
   const geocoded = stops.filter(s => s.customers?.lat);
   if (!geocoded.length) return null;
   const origin    = `${DEPOT.lat},${DEPOT.lng}`;
-  const waypoints = geocoded.map(s => `${s.customers.lat},${s.customers.lng}`).join('|');
+  const waypoints = geocoded.map(s => `${s.customers.lat},${s.customers.lng}`).join('%7C');
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}&travelmode=driving`;
 }
 
