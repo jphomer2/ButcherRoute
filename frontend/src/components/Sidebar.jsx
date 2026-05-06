@@ -43,6 +43,7 @@ const TAB_BTN = (active) => ({
   fontFamily: 'DM Mono', fontSize: '0.62rem', letterSpacing: '1.5px',
   color: active ? 'var(--rust)' : 'var(--light-mid)',
   transition: 'all 0.15s',
+  minHeight: '44px',
 });
 
 export default function Sidebar({ messages, selectedMsg, onSelectMsg, onParsed, deliveryDate, panelResetKey }) {

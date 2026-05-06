@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const EXAMPLE_ORDER = `Morning all, orders for tomorrow:
 Magpie - 20 cases
@@ -8,6 +9,7 @@ The Black Horse - 12 cases
 Garnon & Bushes - 18 cases`;
 
 export default function ParsePanel({ onParsed, deliveryDate }) {
+  const isMobile = useIsMobile();
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -61,7 +63,7 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
         value={text}
         onChange={handleChange}
         placeholder={"Morning all — orders for tomorrow:\nBlack Horse - 30 cases EARLY 06:00\nMagpie - 20 cases\nMilling Barn - tbc"}
-        rows={5}
+        rows={isMobile ? 3 : 5}
         style={{
           width: '100%', background: 'var(--blood)', border: '1px solid var(--mid)',
           borderRadius: '8px', color: 'var(--cream)', fontFamily: 'DM Mono',
@@ -88,6 +90,7 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
       <button
         onClick={handleParse}
         disabled={loading || !text.trim()}
+        className="parse-btn"
         style={{
           marginTop: '0.6rem', width: '100%', padding: '0.6rem',
           background: loading || !text.trim() ? '#94A3B8' : 'var(--rust)',

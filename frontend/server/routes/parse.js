@@ -58,9 +58,106 @@ function matchCustomer(rawName, customers) {
   return { customer: null, confidence: 0 };
 }
 
+const EXAMPLE_STOPS = [
+  { name: 'Magpie',          quantity: 20, tbc: false },
+  { name: 'Funky Monk',      quantity: 15, tbc: false },
+  { name: 'The Black Horse', quantity: 12, tbc: false },
+  { name: 'Garnon & Bushes', quantity: 18, tbc: false },
+];
+
+const EXAMPLE_MESSAGE = `Morning all, orders for tomorrow:
+Magpie - 20 cases
+Funky Monk - 15 cases
+The Black Horse - 12 cases
+Garnon & Bushes - 18 cases`;
+
+// GET /api/parse/load-example?date=YYYY-MM-DD
+router.get('/load-example', async (req, res) => {
+  req.body = { delivery_date: req.query.date };
+  return loadExampleHandler(req, res);
+});
+
+// POST /api/parse/load-example
+router.post('/load-example', async (req, res) => {
+  return loadExampleHandler(req, res);
+});
+
+async function loadExampleHandler(req, res) {
+  const companyId = req.companyId;
+  const { delivery_date } = req.body;
+  const date = delivery_date || new Date().toISOString().split('T')[0];
+
+  // Load matching customers scoped to this company
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('id, name, delivery_notes')
+    .in('name', EXAMPLE_STOPS.map(s => s.name))
+    .eq('active', true)
+    .eq('company_id', companyId);
+
+  // Find or create a run for this company + date
+  let { data: run } = await supabase
+    .from('runs')
+    .select('id')
+    .eq('delivery_date', date)
+    .eq('company_id', companyId)
+    .maybeSingle();
+
+  if (!run) {
+    const { data: newRun } = await supabase
+      .from('runs')
+      .insert({ delivery_date: date, status: 'building', company_id: companyId })
+      .select('id')
+      .single();
+    run = newRun;
+  } else {
+    // Wipe existing stops for this run and reset state
+    await supabase.from('delivery_stops').delete().eq('run_id', run.id);
+    await supabase.from('runs')
+      .update({ status: 'building', route_url: null, total_miles: null, est_drive_minutes: null })
+      .eq('id', run.id);
+  }
+
+  const rows = EXAMPLE_STOPS.map((s, idx) => {
+    const customer = (customers || []).find(c => c.name === s.name);
+    return {
+      run_id:            run.id,
+      delivery_date:     date,
+      customer_id:       customer?.id || null,
+      customer_name_raw: s.name,
+      quantity:          s.quantity,
+      unit:              'cases',
+      early:             false,
+      early_time:        null,
+      tbc:               s.tbc,
+      notes:             customer?.delivery_notes || null,
+      matched:           !!customer,
+      match_confidence:  customer ? 1.0 : 0,
+      route_sequence:    idx + 1,
+      company_id:        companyId,
+    };
+  });
+
+  const { data: insertedStops, error } = await supabase
+    .from('delivery_stops')
+    .insert(rows)
+    .select('*, customers(name, address, postcode, lat, lng)');
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ run_id: run?.id || null, stops: insertedStops, reset: true });
+}
+
+// POST /api/parse/message
 router.post('/message', async (req, res) => {
   const { message, delivery_date } = req.body;
   if (!message) return res.status(400).json({ error: 'message is required' });
+
+  // Intercept /example — load demo stops directly, no Claude needed
+  const msgNorm = message.trim().toLowerCase();
+  if (msgNorm === '/example' || msgNorm === EXAMPLE_MESSAGE.trim().toLowerCase()) {
+    req.body = { delivery_date };
+    return loadExampleHandler(req, res);
+  }
 
   const date = delivery_date || new Date().toISOString().split('T')[0];
 
@@ -71,7 +168,7 @@ router.post('/message', async (req, res) => {
   try {
     const { data: msgRow, error: msgErr } = await supabase
       .from('whatsapp_messages')
-      .insert({ body: message, delivery_date: date, status: 'pending', from_number: 'manual' })
+      .insert({ body: message, delivery_date: date, status: 'pending', from_number: 'manual', company_id: req.companyId })
       .select()
       .single();
 
@@ -134,7 +231,7 @@ router.post('/message', async (req, res) => {
       });
     }
 
-    // Ensure run exists before inserting stops (run_id is required)
+    // Ensure run exists before inserting stops
     let runId = activeRun?.id || null;
     if (!runId) {
       const { data: newRun } = await supabase
@@ -148,20 +245,21 @@ router.post('/message', async (req, res) => {
     const stops = parsedStops.map((stop, idx) => {
       const { customer, confidence } = matchCustomer(stop.customer_name_raw, customers);
       return {
-        run_id: runId,
-        message_id: msgRow.id,
-        customer_id: customer?.id || null,
-        delivery_date: date,
+        run_id:            runId,
+        message_id:        msgRow.id,
+        customer_id:       customer?.id || null,
+        delivery_date:     date,
         customer_name_raw: stop.customer_name_raw,
-        quantity: stop.quantity,
-        unit: stop.unit || 'cases',
-        early: stop.early || false,
-        early_time: stop.early_time || null,
-        tbc: stop.tbc || false,
-        notes: stop.notes || customer?.delivery_notes || null,
-        matched: !!customer,
-        match_confidence: confidence,
-        route_sequence: existingStopCount + idx + 1,
+        quantity:          stop.quantity,
+        unit:              stop.unit || 'cases',
+        early:             stop.early || false,
+        early_time:        stop.early_time || null,
+        tbc:               stop.tbc || false,
+        notes:             stop.notes || customer?.delivery_notes || null,
+        matched:           !!customer,
+        match_confidence:  confidence,
+        route_sequence:    existingStopCount + idx + 1,
+        company_id:        req.companyId,
       };
     });
 

@@ -3,13 +3,14 @@ import { supabase } from '../lib/supabase.js';
 
 const router = Router();
 
-router.get('/', async (_req, res) => {
-  const { data, error } = await supabase
+router.get('/', async (req, res) => {
+  let query = supabase
     .from('driver')
     .select('id, name, whatsapp_number, van_plate, vehicle_reg, phone, active')
     .eq('active', true)
     .order('name');
-
+  if (req.companyId) query = query.eq('company_id', req.companyId);
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
@@ -20,7 +21,15 @@ router.post('/', async (req, res) => {
 
   const { data, error } = await supabase
     .from('driver')
-    .insert({ name: name.trim(), phone: phone || null, whatsapp_number: whatsapp_number || null, vehicle_reg: vehicle_reg || null, van_plate: vehicle_reg || null, active: true })
+    .insert({
+      name: name.trim(),
+      phone: phone || null,
+      whatsapp_number: whatsapp_number || null,
+      vehicle_reg: vehicle_reg || null,
+      van_plate: vehicle_reg || null,
+      company_id: req.companyId,
+      active: true,
+    })
     .select()
     .single();
 

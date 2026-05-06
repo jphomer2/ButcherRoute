@@ -66,4 +66,5 @@ const navBtn = {
   background: 'none', border: '1px solid var(--mid)', borderRadius: '6px',
   color: 'var(--bone)', cursor: 'pointer', padding: '0.2rem 0.65rem',
   fontFamily: 'DM Mono', fontSize: '0.9rem', transition: 'border-color 0.15s',
+  minHeight: '44px', minWidth: '40px',
 };

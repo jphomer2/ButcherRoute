@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { useSession } from '../contexts/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const inputStyle = {
   width: '100%', background: 'var(--blood)', border: '1px solid var(--mid)',
@@ -13,6 +14,7 @@ const labelStyle = {
 };
 
 function CustomerDrawer({ customer, onClose, onSaved }) {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState({
     name:           customer?.name           || '',
     contact_name:   customer?.contact_name   || '',
@@ -56,20 +58,29 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
     }
   }
 
+  const drawerStyle = isMobile ? {
+    position: 'fixed', left: 0, right: 0, bottom: 0,
+    background: 'var(--charcoal)', borderTop: '1px solid var(--mid)',
+    borderRadius: '16px 16px 0 0',
+    zIndex: 201, display: 'flex', flexDirection: 'column',
+    maxHeight: '92vh',
+    boxShadow: '0 -4px 20px rgba(0,0,0,0.25)',
+  } : {
+    position: 'fixed', top: 0, right: 0, bottom: 0, width: '320px',
+    background: 'var(--charcoal)', borderLeft: '1px solid var(--mid)',
+    zIndex: 201, display: 'flex', flexDirection: 'column',
+    boxShadow: '-4px 0 20px rgba(0,0,0,0.25)',
+  };
+
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200 }} />
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: '320px',
-        background: 'var(--charcoal)', borderLeft: '1px solid var(--mid)',
-        zIndex: 201, display: 'flex', flexDirection: 'column',
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.25)',
-      }}>
+      <div style={drawerStyle}>
         <div style={{ padding: '1rem', borderBottom: '1px solid var(--mid)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: 'DM Mono', fontSize: '0.68rem', letterSpacing: '2px', color: 'var(--light-mid)' }}>
             {customer?.id ? 'EDIT CUSTOMER' : 'ADD CUSTOMER'}
           </span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--light-mid)', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--light-mid)', cursor: 'pointer', fontSize: '1.1rem', minHeight: '44px', minWidth: '44px' }}>✕</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -89,7 +100,7 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
           ].map(({ k, label }) => (
             <div key={k}>
               <label style={labelStyle}>{label}</label>
-              <input value={form[k]} onChange={e => update(k, e.target.value)} style={inputStyle} />
+              <input value={form[k]} onChange={e => update(k, e.target.value)} style={{ ...inputStyle, fontSize: '1rem' }} />
             </div>
           ))}
 
@@ -103,28 +114,28 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
             />
           </div>
 
-          {/* WhatsApp alias */}
           <div style={{ borderTop: '1px solid var(--mid)', paddingTop: '0.75rem' }}>
             <label style={labelStyle}>WHATSAPP ORDER NAME</label>
             <input
               value={form.name_aliases}
               onChange={e => update('name_aliases', e.target.value)}
               placeholder="e.g. Bob's Butchers, Bobby"
-              style={inputStyle}
+              style={{ ...inputStyle, fontSize: '1rem' }}
             />
             <div style={{ fontFamily: 'DM Mono', fontSize: '0.58rem', color: 'var(--light-mid)', marginTop: '5px', lineHeight: 1.5 }}>
-              How this customer appears in order messages. Separate multiple names with commas. Used for automatic matching when parsing WhatsApp orders.
+              How this customer appears in order messages. Separate multiple names with commas.
             </div>
           </div>
-
         </div>
 
         <div style={{ padding: '1rem', borderTop: '1px solid var(--mid)' }}>
           <button onClick={save} disabled={saving} style={{
-            width: '100%', padding: '0.65rem', border: 'none', borderRadius: '8px',
+            width: '100%', padding: isMobile ? '0.75rem' : '0.65rem',
+            border: 'none', borderRadius: '8px',
             background: saving ? '#94A3B8' : 'var(--rust)', color: 'white',
             fontFamily: 'DM Sans', fontWeight: 600, fontSize: '0.82rem',
             cursor: saving ? 'not-allowed' : 'pointer',
+            marginBottom: isMobile ? '0.5rem' : 0,
           }}>
             {saving ? 'Saving…' : customer?.id ? 'Save Changes' : 'Add Customer'}
           </button>
@@ -136,13 +147,16 @@ function CustomerDrawer({ customer, onClose, onSaved }) {
 
 function CustomerRow({ customer, onEdit, onRemove }) {
   const [hovered, setHovered] = useState(false);
+  const isMobile = useIsMobile();
+
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: '0.5rem',
-        padding: '0.55rem 0.5rem', borderRadius: '6px',
+        padding: isMobile ? '0.65rem 0.5rem' : '0.55rem 0.5rem',
+        borderRadius: '6px',
         background: hovered ? 'var(--blood)' : 'transparent',
         transition: 'background 0.15s',
       }}
@@ -155,14 +169,20 @@ function CustomerRow({ customer, onEdit, onRemove }) {
           {[customer.postcode, customer.phone].filter(Boolean).join(' · ') || '—'}
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '0.3rem', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '0.3rem', opacity: isMobile || hovered ? 1 : 0, transition: 'opacity 0.15s', flexShrink: 0 }}>
         <button onClick={() => onEdit(customer)} title="Edit" style={{
           background: 'var(--blood)', border: '1px solid var(--mid)', borderRadius: '4px',
-          color: 'var(--light-mid)', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem',
+          color: 'var(--light-mid)',
+          padding: isMobile ? '6px 10px' : '3px 8px',
+          cursor: 'pointer', fontSize: '0.75rem',
+          minHeight: isMobile ? '40px' : undefined,
         }}>✎</button>
         <button onClick={() => onRemove(customer)} title="Remove" style={{
           background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
-          borderRadius: '4px', color: '#DC2626', padding: '3px 7px', cursor: 'pointer', fontSize: '0.7rem',
+          borderRadius: '4px', color: '#DC2626',
+          padding: isMobile ? '6px 9px' : '3px 7px',
+          cursor: 'pointer', fontSize: '0.7rem',
+          minHeight: isMobile ? '40px' : undefined,
         }}>✕</button>
       </div>
     </div>
@@ -202,13 +222,11 @@ export default function CustomersPanel() {
 
   async function handleSaved(savedCustomer) {
     closeDrawer();
-    // Optimistically update the list immediately
     if (editing?.id) {
       setCustomers(prev => prev.map(c => c.id === savedCustomer.id ? savedCustomer : c));
     } else {
       setCustomers(prev => [...prev, savedCustomer].sort((a, b) => a.name.localeCompare(b.name)));
     }
-    // Show confirmation
     setSavedName(savedCustomer.name);
     setTimeout(() => setSavedName(null), 4000);
   }
@@ -222,7 +240,6 @@ export default function CustomersPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Top bar */}
       <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--mid)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <span style={{ fontFamily: 'DM Mono', fontSize: '0.6rem', letterSpacing: '2px', color: 'var(--light-mid)' }}>
           {customers.length} CUSTOMERS
@@ -230,11 +247,10 @@ export default function CustomersPanel() {
         <button onClick={openAdd} style={{
           background: 'var(--rust)', border: 'none', borderRadius: '6px', color: 'white',
           fontFamily: 'DM Mono', fontSize: '0.65rem', letterSpacing: '1px',
-          padding: '5px 12px', cursor: 'pointer',
+          padding: '5px 12px', cursor: 'pointer', minHeight: '36px',
         }}>+ ADD</button>
       </div>
 
-      {/* Save confirmation banner */}
       {savedName && (
         <div style={{
           padding: '0.55rem 1rem', flexShrink: 0,
@@ -247,7 +263,6 @@ export default function CustomersPanel() {
         </div>
       )}
 
-      {/* Search */}
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--mid)', flexShrink: 0 }}>
         <input
           value={search}
@@ -257,7 +272,6 @@ export default function CustomersPanel() {
         />
       </div>
 
-      {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0.4rem 0.5rem' }}>
         {loading ? (
           <div style={{ color: 'var(--light-mid)', fontFamily: 'DM Mono', fontSize: '0.75rem', textAlign: 'center', padding: '2rem 0' }}>Loading…</div>

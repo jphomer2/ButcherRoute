@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabase } from '../lib/supabase.js';
+import { getCompanyId } from '../lib/auth.js';
 
 const router = Router();
 
@@ -13,18 +14,20 @@ router.post('/', async (req, res) => {
   const { delivery_date } = req.body;
   if (!delivery_date) return res.status(400).json({ error: 'delivery_date required' });
 
-  // 1. Load stops with customer coords
-  const { data: stops, error: stopsErr } = await supabase
+  const company_id = await getCompanyId(req.headers.authorization);
+
+  // 1. Load stops with customer coords, scoped to this company
+  let stopsQuery = supabase
     .from('delivery_stops')
     .select('id, customer_name_raw, tbc, customers(name, lat, lng)')
     .eq('delivery_date', delivery_date)
     .eq('tbc', false);
+  if (company_id) stopsQuery = stopsQuery.eq('company_id', company_id);
+  const { data: stops, error: stopsErr } = await stopsQuery;
 
   if (stopsErr) return res.status(500).json({ error: stopsErr.message });
   if (!stops?.length) return res.status(400).json({ error: 'No stops found for this date' });
 
-  // Normalise: Supabase returns the joined row as an object (many-to-one).
-  // Guard against it occasionally coming back as a single-item array.
   const normalised = stops.map(s => ({
     ...s,
     customers: Array.isArray(s.customers) ? s.customers[0] ?? null : s.customers,
@@ -68,7 +71,7 @@ router.post('/', async (req, res) => {
   let totalSeconds   = null;
 
   try {
-    const routeRes  = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+    const routeRes = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -122,8 +125,8 @@ router.post('/', async (req, res) => {
     mapsUrl = buildBasicUrl(geocoded);
   }
 
-  // 5. Save to runs table
-  const { error: runUpdateErr } = await supabase
+  // 5. Save to runs table, scoped to this company
+  let runsUpdate = supabase
     .from('runs')
     .update({
       status: 'ready',
@@ -133,6 +136,8 @@ router.post('/', async (req, res) => {
       updated_at: new Date().toISOString(),
     })
     .eq('delivery_date', delivery_date);
+  if (company_id) runsUpdate = runsUpdate.eq('company_id', company_id);
+  const { error: runUpdateErr } = await runsUpdate;
 
   if (runUpdateErr) {
     console.error('Failed to update run:', runUpdateErr.message);
@@ -141,12 +146,12 @@ router.post('/', async (req, res) => {
   }
 
   res.json({
-    stops_optimised:  geocoded.length,
-    stops_skipped:    ungeocodable.length,
-    total_miles:      miles,
+    stops_optimised:   geocoded.length,
+    stops_skipped:     ungeocodable.length,
+    total_miles:       miles,
     est_drive_minutes: minutes,
-    maps_url:         mapsUrl,
-    optimised_order:  optimisedOrder,
+    maps_url:          mapsUrl,
+    optimised_order:   optimisedOrder,
   });
 });
 

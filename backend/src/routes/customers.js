@@ -1,30 +1,6 @@
 import { Router } from 'express';
 import { supabase } from '../lib/supabase.js';
-
-function parseJwt(token) {
-  try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(Buffer.from(base64, 'base64').toString());
-  } catch { return null; }
-}
-
-async function getCompanyId(authHeader) {
-  const token = authHeader?.replace('Bearer ', '');
-  if (token) {
-    try {
-      const userId = parseJwt(token)?.sub;
-      if (userId) {
-        const { data } = await supabase.from('users').select('company_id').eq('id', userId).single();
-        if (data?.company_id) return data.company_id;
-      }
-    } catch {}
-  }
-  // Fallback: use the only/first company in the system
-  try {
-    const { data } = await supabase.from('companies').select('id').limit(1).single();
-    return data?.id ?? null;
-  } catch { return null; }
-}
+import { getCompanyId } from '../lib/auth.js';
 
 const router = Router();
 
@@ -47,13 +23,15 @@ async function geocode(address, postcode) {
   return null;
 }
 
-router.get('/', async (_req, res) => {
-  const { data, error } = await supabase
+router.get('/', async (req, res) => {
+  const company_id = await getCompanyId(req.headers.authorization);
+  let query = supabase
     .from('customers')
     .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone')
     .eq('active', true)
     .order('name');
-
+  if (company_id) query = query.eq('company_id', company_id);
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
@@ -61,14 +39,15 @@ router.get('/', async (_req, res) => {
 router.get('/search', async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ error: 'q is required' });
-
-  const { data, error } = await supabase
+  const company_id = await getCompanyId(req.headers.authorization);
+  let query = supabase
     .from('customers')
     .select('id, name, postcode, delivery_notes, lat, lng')
     .eq('active', true)
     .ilike('name', `%${q}%`)
     .limit(10);
-
+  if (company_id) query = query.eq('company_id', company_id);
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
@@ -79,7 +58,6 @@ router.get('/:id', async (req, res) => {
     .select('*')
     .eq('id', req.params.id)
     .single();
-
   if (error) return res.status(404).json({ error: 'Not found' });
   res.json(data);
 });
@@ -87,9 +65,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { name, contact_name, phone, address, postcode, delivery_notes, name_aliases } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
-
   const company_id = await getCompanyId(req.headers.authorization);
-
   const { data, error } = await supabase
     .from('customers')
     .insert({
@@ -107,7 +83,6 @@ router.post('/', async (req, res) => {
     })
     .select()
     .single();
-
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data);
 });
@@ -133,7 +108,6 @@ router.patch('/:id', async (req, res) => {
     .eq('id', req.params.id)
     .select()
     .single();
-
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
@@ -143,7 +117,6 @@ router.delete('/:id', async (req, res) => {
     .from('customers')
     .update({ active: false })
     .eq('id', req.params.id);
-
   if (error) return res.status(500).json({ error: error.message });
   res.status(204).end();
 });
