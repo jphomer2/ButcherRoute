@@ -1,0 +1,22 @@
+{
+  "name": "ButcherRoute",
+  "short_name": "ButcherRoute",
+  "description": "Order management and dispatch software for UK meat wholesalers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#134E4A",
+  "theme_color": "#0F766E",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
