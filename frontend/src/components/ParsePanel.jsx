@@ -31,10 +31,7 @@ export default function ParsePanel({ onParsed, deliveryDate }) {
     setError(null);
     setNotice(null);
     try {
-      // /example bypasses Claude and directly loads real Suffolk Farms customers
-      const result = trimmed === '/example'
-        ? await api.loadExample(deliveryDate)
-        : await api.parseMessage({ message: trimmed, delivery_date: deliveryDate });
+      const result = await api.parseMessage({ message: trimmed, delivery_date: deliveryDate });
       onParsed(result);
       if (!result.stops?.length) {
         setNotice('All stops in this message are already in today\'s run — loaded below.');
