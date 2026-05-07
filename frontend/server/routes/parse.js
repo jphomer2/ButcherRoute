@@ -159,6 +159,19 @@ router.post('/message', async (req, res) => {
     return loadExampleHandler(req, res);
   }
 
+  // Rate limit: max 60 AI parse calls per hour per company
+  try {
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await supabase
+      .from('whatsapp_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('company_id', req.companyId)
+      .gte('received_at', hourAgo);
+    if (count >= 60) {
+      return res.status(429).json({ error: 'Rate limit reached — maximum 60 order parses per hour. Try again shortly.' });
+    }
+  } catch (_) { /* allow through if check fails */ }
+
   const date = delivery_date || new Date().toISOString().split('T')[0];
 
   const key = process.env.ANTHROPIC_API_KEY?.trim();

@@ -18,10 +18,16 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// Shared anon client for token verification and non-sensitive lookups
+// Anon client — used only for verifying JWTs (auth.getUser)
 const authClient = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
+);
+
+// Service client — bypasses RLS, used for users lookup in auth middleware
+const serviceClient = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 // Auth middleware — runs before every route below
@@ -31,7 +37,8 @@ app.use(async (req, res, next) => {
   const { data: { user }, error } = await authClient.auth.getUser(token);
   if (error || !user) return res.status(401).json({ error: 'Invalid session' });
 
-  const { data: userRow } = await authClient
+  // Use service client to look up company_id (bypasses RLS safely on server)
+  const { data: userRow } = await serviceClient
     .from('users')
     .select('company_id')
     .eq('id', user.id)
