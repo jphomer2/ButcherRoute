@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { supabase } from '../lib/supabase.js';
+import { makeUserClient } from '../lib/supabase.js';
 
 const router = Router();
+
+router.use((req, _res, next) => { req.sb = makeUserClient(req.accessToken); next(); });
 
 async function geocode(address, postcode) {
   const key = process.env.GOOGLE_MAPS_API_KEY;
@@ -21,7 +23,7 @@ async function geocode(address, postcode) {
 router.get('/', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ error: 'Company not resolved' });
 
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('customers')
     .select('id, name, name_aliases, postcode, delivery_notes, lat, lng, address, contact_name, phone, company_id')
     .eq('active', true)
@@ -39,7 +41,7 @@ router.get('/search', async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ error: 'q is required' });
 
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('customers')
     .select('id, name, postcode, delivery_notes, lat, lng')
     .eq('active', true)
@@ -52,7 +54,7 @@ router.get('/search', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('customers')
     .select('*')
     .eq('id', req.params.id)
@@ -73,7 +75,7 @@ router.post('/', async (req, res) => {
     ? name_aliases.filter(Boolean)
     : (typeof name_aliases === 'string' && name_aliases.trim() ? [name_aliases.trim()] : null);
 
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('customers')
     .insert({
       name: name.trim(),
@@ -107,7 +109,7 @@ router.patch('/:id', async (req, res) => {
 
   if (patch.address !== undefined || patch.postcode !== undefined) {
     if (!patch.lat && !patch.lng) {
-      const existing = await supabase.from('customers').select('address, postcode').eq('id', req.params.id).eq('company_id', req.companyId).single();
+      const existing = await req.sb.from('customers').select('address, postcode').eq('id', req.params.id).eq('company_id', req.companyId).single();
       const addr = patch.address ?? existing.data?.address;
       const pc   = patch.postcode ?? existing.data?.postcode;
       const coords = await geocode(addr, pc);
@@ -115,7 +117,7 @@ router.patch('/:id', async (req, res) => {
     }
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('customers')
     .update(patch)
     .eq('id', req.params.id)
@@ -128,7 +130,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const { error } = await supabase
+  const { error } = await req.sb
     .from('customers')
     .update({ active: false })
     .eq('id', req.params.id)

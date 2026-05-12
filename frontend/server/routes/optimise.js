@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { supabase } from '../lib/supabase.js';
+import { makeUserClient } from '../lib/supabase.js';
 
 const router = Router();
+
+router.use((req, _res, next) => { req.sb = makeUserClient(req.accessToken); next(); });
 
 const DEPOT = {
   lat: parseFloat(process.env.DEPOT_LAT) || 51.750589,
@@ -12,8 +14,7 @@ router.post('/', async (req, res) => {
   const { delivery_date } = req.body;
   if (!delivery_date) return res.status(400).json({ error: 'delivery_date required' });
 
-  // Find the run for this company + date
-  const { data: run } = await supabase
+  const { data: run } = await req.sb
     .from('runs')
     .select('id')
     .eq('delivery_date', delivery_date)
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
 
   if (!run) return res.status(404).json({ error: 'No run found for this date' });
 
-  const { data: stops, error } = await supabase
+  const { data: stops, error } = await req.sb
     .from('delivery_stops')
     .select('id, customer_name_raw, tbc, customers(name, lat, lng)')
     .eq('run_id', run.id)
@@ -30,7 +31,7 @@ router.post('/', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const geocoded    = stops.filter(s => s.customers?.lat && s.customers?.lng);
+  const geocoded     = stops.filter(s => s.customers?.lat && s.customers?.lng);
   const ungeocodable = stops.filter(s => !s.customers?.lat || !s.customers?.lng);
 
   if (geocoded.length < 2) {
@@ -79,17 +80,11 @@ router.post('/', async (req, res) => {
   }
 
   if (optimisedOrder) {
-    const updates = optimisedOrder.map((origIdx, newSeq) => ({
-      id: geocoded[origIdx].id,
-      route_sequence: newSeq + 1,
-    }));
-
-    for (const u of updates) {
-      await supabase.from('delivery_stops').update({ route_sequence: u.route_sequence }).eq('id', u.id);
+    for (const [newSeq, origIdx] of optimisedOrder.entries()) {
+      await req.sb.from('delivery_stops').update({ route_sequence: newSeq + 1 }).eq('id', geocoded[origIdx].id);
     }
-
     for (let i = 0; i < ungeocodable.length; i++) {
-      await supabase.from('delivery_stops')
+      await req.sb.from('delivery_stops')
         .update({ route_sequence: optimisedOrder.length + i + 1 })
         .eq('id', ungeocodable[i].id);
     }
@@ -99,7 +94,7 @@ router.post('/', async (req, res) => {
   const minutes = totalSeconds ? Math.round(totalSeconds / 60) : null;
   const mapsUrl = buildOptimisedUrl(geocoded, optimisedOrder);
 
-  await supabase.from('runs')
+  await req.sb.from('runs')
     .update({
       status: 'ready',
       total_miles: miles,
@@ -110,12 +105,12 @@ router.post('/', async (req, res) => {
     .eq('id', run.id);
 
   res.json({
-    stops_optimised: geocoded.length,
-    stops_skipped:   ungeocodable.length,
-    total_miles:     miles,
+    stops_optimised:   geocoded.length,
+    stops_skipped:     ungeocodable.length,
+    total_miles:       miles,
     est_drive_minutes: minutes,
-    maps_url:        mapsUrl,
-    optimised_order: optimisedOrder,
+    maps_url:          mapsUrl,
+    optimised_order:   optimisedOrder,
   });
 });
 

@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { supabase } from '../lib/supabase.js';
+import { makeUserClient } from '../lib/supabase.js';
 
 const router = Router();
 
+router.use((req, _res, next) => { req.sb = makeUserClient(req.accessToken); next(); });
+
 router.get('/', async (req, res) => {
-  let query = supabase
+  let query = req.sb
     .from('driver')
     .select('id, name, whatsapp_number, van_plate, vehicle_reg, phone, active')
     .eq('active', true)
@@ -19,7 +21,7 @@ router.post('/', async (req, res) => {
   const { name, phone, whatsapp_number, vehicle_reg } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
 
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('driver')
     .insert({
       name: name.trim(),
@@ -41,7 +43,7 @@ router.patch('/:id', async (req, res) => {
   const patch = { ...req.body };
   if (patch.vehicle_reg !== undefined) patch.van_plate = patch.vehicle_reg;
 
-  const { data, error } = await supabase
+  const { data, error } = await req.sb
     .from('driver')
     .update(patch)
     .eq('id', req.params.id)
@@ -53,7 +55,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const { error } = await supabase
+  const { error } = await req.sb
     .from('driver')
     .update({ active: false })
     .eq('id', req.params.id);

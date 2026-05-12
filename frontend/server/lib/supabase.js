@@ -1,18 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const url        = process.env.SUPABASE_URL;
-const anonKey    = process.env.SUPABASE_ANON_KEY;
+const url        = process.env.SUPABASE_URL        || 'https://placeholder.supabase.co';
+const anonKey    = process.env.SUPABASE_ANON_KEY   || 'placeholder';
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const key        = serviceKey || anonKey;
 
-if (!url || !key) {
-  console.warn('⚠️  SUPABASE_URL / SUPABASE_ANON_KEY not set — database routes will fail until configured.');
-}
-if (!serviceKey) {
-  console.warn('⚠️  SUPABASE_SERVICE_ROLE_KEY not set — falling back to anon key. Writes may fail if RLS is enabled.');
-}
+// Service client — bypasses RLS entirely. Use for admin operations.
+export const supabase = createClient(url, serviceKey || anonKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
-export const supabase = createClient(
-  url  || 'https://placeholder.supabase.co',
-  key  || 'placeholder'
-);
+// User-scoped client — runs as the authenticated user, RLS applies correctly.
+// Use this in route handlers where req.accessToken is available.
+export function makeUserClient(accessToken) {
+  return createClient(url, anonKey, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth:   { persistSession: false, autoRefreshToken: false },
+  });
+}

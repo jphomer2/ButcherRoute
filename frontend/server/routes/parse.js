@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
-import { supabase } from '../lib/supabase.js';
+import { makeUserClient } from '../lib/supabase.js';
 
 const router = Router();
 
@@ -83,12 +83,13 @@ router.post('/load-example', async (req, res) => {
 });
 
 async function loadExampleHandler(req, res) {
+  const sb        = makeUserClient(req.accessToken);
   const companyId = req.companyId;
   const { delivery_date } = req.body;
   const date = delivery_date || new Date().toISOString().split('T')[0];
 
   // Load matching customers scoped to this company
-  const { data: customers } = await supabase
+  const { data: customers } = await sb
     .from('customers')
     .select('id, name, delivery_notes')
     .in('name', EXAMPLE_STOPS.map(s => s.name))
@@ -96,7 +97,7 @@ async function loadExampleHandler(req, res) {
     .eq('company_id', companyId);
 
   // Find or create a run for this company + date
-  let { data: run } = await supabase
+  let { data: run } = await sb
     .from('runs')
     .select('id')
     .eq('delivery_date', date)
@@ -104,7 +105,7 @@ async function loadExampleHandler(req, res) {
     .maybeSingle();
 
   if (!run) {
-    const { data: newRun } = await supabase
+    const { data: newRun } = await sb
       .from('runs')
       .insert({ delivery_date: date, status: 'building', company_id: companyId })
       .select('id')
@@ -112,11 +113,13 @@ async function loadExampleHandler(req, res) {
     run = newRun;
   } else {
     // Wipe existing stops for this run and reset state
-    await supabase.from('delivery_stops').delete().eq('run_id', run.id);
-    await supabase.from('runs')
+    await sb.from('delivery_stops').delete().eq('run_id', run.id);
+    await sb.from('runs')
       .update({ status: 'building', route_url: null, total_miles: null, est_drive_minutes: null })
       .eq('id', run.id);
   }
+
+  if (!run) return res.status(500).json({ error: 'Failed to create run — check Supabase connection' });
 
   const rows = EXAMPLE_STOPS.map((s, idx) => {
     const customer = (customers || []).find(c => c.name === s.name);
@@ -138,7 +141,7 @@ async function loadExampleHandler(req, res) {
     };
   });
 
-  const { data: insertedStops, error } = await supabase
+  const { data: insertedStops, error } = await sb
     .from('delivery_stops')
     .insert(rows)
     .select('*, customers(name, address, postcode, lat, lng)');
@@ -159,10 +162,13 @@ router.post('/message', async (req, res) => {
     return loadExampleHandler(req, res);
   }
 
+  const sb   = makeUserClient(req.accessToken);
+  const date = delivery_date || new Date().toISOString().split('T')[0];
+
   // Rate limit: max 60 AI parse calls per hour per company
   try {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await supabase
+    const { count } = await sb
       .from('whatsapp_messages')
       .select('id', { count: 'exact', head: true })
       .eq('company_id', req.companyId)
@@ -172,14 +178,12 @@ router.post('/message', async (req, res) => {
     }
   } catch (_) { /* allow through if check fails */ }
 
-  const date = delivery_date || new Date().toISOString().split('T')[0];
-
   const key = process.env.ANTHROPIC_API_KEY?.trim();
   if (!key) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set on server' });
   const anthropic = new Anthropic({ apiKey: key });
 
   try {
-    const { data: msgRow, error: msgErr } = await supabase
+    const { data: msgRow, error: msgErr } = await sb
       .from('whatsapp_messages')
       .insert({ body: message, delivery_date: date, status: 'pending', from_number: 'manual', company_id: req.companyId })
       .select()
@@ -199,17 +203,17 @@ router.post('/message', async (req, res) => {
       const raw = response.content[0].text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
       parsed = JSON.parse(raw);
     } catch {
-      await supabase.from('whatsapp_messages').update({ status: 'failed' }).eq('id', msgRow.id);
+      await sb.from('whatsapp_messages').update({ status: 'failed' }).eq('id', msgRow.id);
       return res.status(422).json({ error: 'Claude returned invalid JSON', raw: response.content[0].text });
     }
 
-    const { data: customers } = await supabase
+    const { data: customers } = await sb
       .from('customers')
       .select('id, name, name_aliases, postcode, lat, lng, delivery_notes')
       .eq('active', true)
       .eq('company_id', req.companyId);
 
-    const { data: activeRun } = await supabase
+    const { data: activeRun } = await sb
       .from('runs')
       .select('id')
       .eq('delivery_date', date)
@@ -220,7 +224,7 @@ router.post('/message', async (req, res) => {
     let existingStopCount = 0;
 
     if (activeRun) {
-      const { data: existingStops } = await supabase
+      const { data: existingStops } = await sb
         .from('delivery_stops')
         .select('customer_name_raw')
         .eq('run_id', activeRun.id);
@@ -233,7 +237,7 @@ router.post('/message', async (req, res) => {
       .filter(stop => !existingNames.has(normalise(stop.customer_name_raw)));
 
     if (!parsedStops.length) {
-      await supabase.from('whatsapp_messages').update({ status: 'parsed' }).eq('id', msgRow.id);
+      await sb.from('whatsapp_messages').update({ status: 'parsed' }).eq('id', msgRow.id);
       return res.json({
         message_id: msgRow.id,
         run_id: activeRun?.id || null,
@@ -247,7 +251,7 @@ router.post('/message', async (req, res) => {
     // Ensure run exists before inserting stops
     let runId = activeRun?.id || null;
     if (!runId) {
-      const { data: newRun } = await supabase
+      const { data: newRun } = await sb
         .from('runs')
         .insert({ delivery_date: date, status: 'building', company_id: req.companyId })
         .select('id')
@@ -276,14 +280,14 @@ router.post('/message', async (req, res) => {
       };
     });
 
-    const { data: insertedStops, error: stopsErr } = await supabase
+    const { data: insertedStops, error: stopsErr } = await sb
       .from('delivery_stops')
       .insert(stops)
       .select('*, customers(name, address, postcode, lat, lng)');
 
     if (stopsErr) return res.status(500).json({ error: stopsErr.message });
 
-    await supabase.from('whatsapp_messages').update({ status: 'parsed' }).eq('id', msgRow.id);
+    await sb.from('whatsapp_messages').update({ status: 'parsed' }).eq('id', msgRow.id);
 
     res.json({
       message_id: msgRow.id,
