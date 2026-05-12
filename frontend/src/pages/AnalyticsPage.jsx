@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { useSession } from '../contexts/AuthContext';
-import LoginScreen from '../components/LoginScreen';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 // Saving assumptions — UK meat delivery context
@@ -99,7 +97,6 @@ function MiniBar({ value, max, color }) {
 }
 
 export default function AnalyticsPage() {
-  const session  = useSession();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -109,9 +106,8 @@ export default function AnalyticsPage() {
   const [period,  setPeriod]  = useState(30);
 
   useEffect(() => {
-    if (!session) return;
     loadData();
-  }, [session, period]);
+  }, [period]);
 
   async function loadData() {
     setLoading(true);
@@ -133,9 +129,6 @@ export default function AnalyticsPage() {
     setStops(stopsRes.data || []);
     setLoading(false);
   }
-
-  if (session === undefined) return null;
-  if (!session) return <LoginScreen />;
 
   // Overview stats
   const completedRuns  = runs.filter(r => r.status === 'dispatched').length;

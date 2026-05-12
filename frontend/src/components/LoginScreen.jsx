@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useSession } from '../contexts/AuthContext';
 
 export default function LoginScreen() {
   const [email,    setEmail]    = useState('');
@@ -7,13 +9,26 @@ export default function LoginScreen() {
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState(null);
 
+  const navigate   = useNavigate();
+  const location   = useLocation();
+  const session    = useSession();
+  const redirectTo = location.state?.from?.pathname || '/app';
+
+  useEffect(() => {
+    if (session) navigate(redirectTo, { replace: true });
+  }, [session, navigate, redirectTo]);
+
+  if (session === undefined) return null;
+
   async function handleSignIn(e) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    setLoading(false);
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   }
 
   return (
